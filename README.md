@@ -186,6 +186,16 @@ The project uses SQLite by default. For production, consider using PostgreSQL or
 - **Forms**: Django Crispy Forms
 - **Configuration**: python-decouple
 
+## Demonstration Screenshots
+![Homepage](screenshots/screenshot1.png)
+*This is the main blog homepage with recent posts*
+
+![User Registration](screenshots/screenshot1.png)
+*This is the user registration form*
+
+![Admin Panel](screenshots/screenshot1.png)
+*Admin Panel for content management*
+
 ## Contributing
 
 1. Fork the repository
