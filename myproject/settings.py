@@ -136,7 +136,8 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Use Railway volume mount path if available, otherwise fallback to local
+MEDIA_ROOT = os.environ.get('RAILWAY_VOLUME_MOUNT_PATH', os.path.join(BASE_DIR, 'media'))
 
 # WhiteNoise configuration for serving media files in production
 WHITENOISE_USE_FINDERS = True
