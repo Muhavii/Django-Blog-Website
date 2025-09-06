@@ -136,7 +136,7 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = '/app/media' if os.environ.get('RAILWAY_ENVIRONMENT') else BASE_DIR / 'media'
 
 # WhiteNoise configuration for serving media files in production
 WHITENOISE_USE_FINDERS = True
