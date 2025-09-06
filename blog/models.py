@@ -20,17 +20,23 @@ class Post(models.Model):
         return self.title
     
     def get_like_count(self):
-        return self.likes.filter(is_like=True).count()
+        try:
+            return self.likes.filter(is_like=True).count()
+        except:
+            return 0
     
     def get_dislike_count(self):
-        return self.likes.filter(is_like=False).count()
+        try:
+            return self.likes.filter(is_like=False).count()
+        except:
+            return 0
     
     def get_user_vote(self, user):
         if user.is_authenticated:
             try:
                 like = self.likes.get(user=user)
                 return like.is_like
-            except Like.DoesNotExist:
+            except:
                 return None
         return None
 
