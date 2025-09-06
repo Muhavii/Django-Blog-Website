@@ -24,6 +24,10 @@ def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     comments = post.comments.all()
     
+    # Increment view count
+    post.view_count += 1
+    post.save(update_fields=['view_count'])
+    
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
