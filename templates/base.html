@@ -144,17 +144,70 @@
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5>Muhavi's Blog</h5>
-                    <p>A modern blog application built with Django and Bootstrap.</p>
+                <div class="col-12 text-center mb-3">
+                    <div class="fun-fact-container">
+                        <h6><i class="fas fa-lightbulb text-warning"></i> Fun Fact</h6>
+                        <p id="random-fact" class="mb-0 fst-italic"></p>
+                    </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; 2025 Muhavi's Blog. All rights reserved.</p>
+                <div class="col-12 text-center">
+                    <p class="mb-0">&copy; 2025 Muhavi's Blog. All rights reserved.</p>
                 </div>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Fun facts array
+        const funFacts = [
+            "Honey never spoils! Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly edible.",
+            "A group of flamingos is called a 'flamboyance'.",
+            "Bananas are berries, but strawberries aren't!",
+            "The shortest war in history lasted only 38-45 minutes between Britain and Zanzibar in 1896.",
+            "Octopuses have three hearts and blue blood.",
+            "A shrimp's heart is in its head.",
+            "It's impossible to hum while holding your nose closed.",
+            "The human brain uses about 20% of the body's total energy.",
+            "There are more possible games of chess than atoms in the observable universe.",
+            "Wombat poop is cube-shaped!",
+            "A day on Venus is longer than its year.",
+            "Sharks have been around longer than trees.",
+            "The Great Wall of China isn't visible from space with the naked eye.",
+            "Butterflies taste with their feet.",
+            "A group of pandas is called an 'embarrassment'.",
+            "The unicorn is Scotland's national animal.",
+            "Cleopatra lived closer in time to the Moon landing than to the construction of the Great Pyramid of Giza.",
+            "There are more trees on Earth than stars in the Milky Way galaxy.",
+            "A single cloud can weigh more than a million pounds.",
+            "The longest recorded flight of a chicken is 13 seconds.",
+            "Sea otters hold hands while sleeping to prevent drifting apart.",
+            "The word 'set' has the most different meanings in the English language.",
+            "A group of owls is called a 'parliament'.",
+            "Dolphins have names for each other.",
+            "The human nose can detect about 1 trillion different scents.",
+            "A bolt of lightning is five times hotter than the surface of the sun.",
+            "Penguins can jump as high as 6 feet in the air.",
+            "The longest place name in the world has 85 letters.",
+            "A group of crows is called a 'murder'.",
+            "Your stomach gets an entirely new lining every 3-4 days."
+        ];
+
+        // Function to display random fact
+        function displayRandomFact() {
+            const randomIndex = Math.floor(Math.random() * funFacts.length);
+            const factElement = document.getElementById('random-fact');
+            if (factElement) {
+                factElement.textContent = funFacts[randomIndex];
+            }
+        }
+
+        // Display random fact when page loads
+        document.addEventListener('DOMContentLoaded', displayRandomFact);
+    </script>
+    
+    {% block extra_js %}
+    {% endblock %}
 </body>
 </html>
