@@ -130,3 +130,85 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-hide messages after 5 seconds
+setTimeout(function() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function(alert) {
+        alert.style.transition = 'opacity 0.5s';
+        alert.style.opacity = '0';
+        setTimeout(function() {
+            alert.remove();
+        }, 500);
+    });
+}, 5000);
+
+// Like/Dislike functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const likeBtn = document.querySelector('.like-btn');
+    const dislikeBtn = document.querySelector('.dislike-btn');
+    
+    if (likeBtn) {
+        likeBtn.addEventListener('click', function() {
+            handleVote(this, true);
+        });
+    }
+    
+    if (dislikeBtn) {
+        dislikeBtn.addEventListener('click', function() {
+            handleVote(this, false);
+        });
+    }
+    
+    function handleVote(button, isLike) {
+        const postId = button.dataset.postId;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/post/${postId}/like/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `is_like=${isLike}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update counts
+                document.querySelector('.like-count').textContent = data.like_count;
+                document.querySelector('.dislike-count').textContent = data.dislike_count;
+                
+                // Update button states
+                updateButtonStates(data.user_vote);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+    function updateButtonStates(userVote) {
+        const likeBtn = document.querySelector('.like-btn');
+        const dislikeBtn = document.querySelector('.dislike-btn');
+        
+        // Reset button states
+        likeBtn.classList.remove('btn-success');
+        likeBtn.classList.add('btn-outline-success');
+        dislikeBtn.classList.remove('btn-danger');
+        dislikeBtn.classList.add('btn-outline-danger');
+        
+        // Highlight active button
+        if (userVote === true) {
+            likeBtn.classList.remove('btn-outline-success');
+            likeBtn.classList.add('btn-success');
+        } else if (userVote === false) {
+            dislikeBtn.classList.remove('btn-outline-danger');
+            dislikeBtn.classList.add('btn-danger');
+        }
+    }
+    
+    // Initialize button states on page load - removed Django template logic to avoid JS lint errors
+});
+</script>
+{% endblock %}
