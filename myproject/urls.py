@@ -25,6 +25,11 @@ urlpatterns = [
     path('', include('blog.urls')),
 ]
 
-# Serve media files in both development and production
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files - force serving in all environments
+from django.views.static import serve
+import re
+
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
