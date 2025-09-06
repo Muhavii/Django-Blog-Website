@@ -123,7 +123,7 @@ def user_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        from django.contrib.auth import authenticate
+        from django.contrib.auth import authenticate, login
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
