@@ -45,9 +45,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
+    'blog',
     'crispy_forms',
     'crispy_bootstrap5',
-    'blog',  # Our sample app
 ]
 
 MIDDLEWARE = [
@@ -136,8 +138,24 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Cloudinary Configuration
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'your-cloud-name'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', 'your-api-key'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your-api-secret'),
+}
+
+cloudinary.config(**CLOUDINARY_STORAGE)
+
+# Use Cloudinary for media files
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/app/media' if os.environ.get('RAILWAY_ENVIRONMENT') else BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / 'media'  # Fallback for local development
 
 # WhiteNoise configuration - exclude media files
 WHITENOISE_USE_FINDERS = True
