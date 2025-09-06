@@ -141,6 +141,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # WhiteNoise configuration for serving media files in production
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True
+WHITENOISE_MAX_AGE = 31536000
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
