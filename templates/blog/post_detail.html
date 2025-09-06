@@ -24,16 +24,30 @@
                                 {% endif %}
                             </small>
                         </div>
-                        {% if user == post.author %}
-                        <div>
-                            <a href="{% url 'edit_post' post.pk %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            <a href="{% url 'delete_post' post.pk %}" class="btn btn-outline-danger btn-sm">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
+                        <div class="d-flex align-items-center">
+                            {% if user.is_authenticated %}
+                            <div class="me-3">
+                                <button class="btn btn-sm btn-outline-success like-btn" data-post-id="{{ post.pk }}" data-is-like="true">
+                                    <i class="fas fa-thumbs-up"></i> 
+                                    <span class="like-count">{{ post.get_like_count }}</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger dislike-btn ms-1" data-post-id="{{ post.pk }}" data-is-like="false">
+                                    <i class="fas fa-thumbs-down"></i> 
+                                    <span class="dislike-count">{{ post.get_dislike_count }}</span>
+                                </button>
+                            </div>
+                            {% endif %}
+                            {% if user == post.author %}
+                            <div>
+                                <a href="{% url 'edit_post' post.pk %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'delete_post' post.pk %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
                     <div class="card-text">
                         {{ post.content|linebreaks }}

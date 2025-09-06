@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .models import Post, Comment
+from django.http import JsonResponse
+from .models import Post, Comment, Like
 from .forms import PostForm, CommentForm, UserRegistrationForm
 
 
@@ -132,6 +132,45 @@ def user_login(request):
             messages.error(request, 'Invalid username or password.')
     
     return render(request, 'blog/login.html')
+
+
+@login_required
+def like_post(request, pk):
+    if request.method == 'POST':
+        post = get_object_or_404(Post, pk=pk)
+        is_like = request.POST.get('is_like') == 'true'
+        
+        # Get or create like object
+        like, created = Like.objects.get_or_create(
+            user=request.user,
+            post=post,
+            defaults={'is_like': is_like}
+        )
+        
+        if not created:
+            # If like exists, update or delete
+            if like.is_like == is_like:
+                # Same vote, remove it
+                like.delete()
+                action = 'removed'
+            else:
+                # Different vote, update it
+                like.is_like = is_like
+                like.save()
+                action = 'updated'
+        else:
+            action = 'added'
+        
+        # Return JSON response for AJAX
+        return JsonResponse({
+            'success': True,
+            'action': action,
+            'like_count': post.get_like_count(),
+            'dislike_count': post.get_dislike_count(),
+            'user_vote': post.get_user_vote(request.user)
+        })
+    
+    return JsonResponse({'success': False})
 
 
 def user_logout(request):
