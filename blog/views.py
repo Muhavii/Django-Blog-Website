@@ -3,6 +3,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Count, Q
+from django.db import transaction
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST, require_http_methods
+
+# Set up logging
+logger = logging.getLogger(__name__)
+from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.conf import settings
+import os
 from django.http import JsonResponse
 from django.db import IntegrityError
 from django.db.models import Q
@@ -139,41 +150,96 @@ def user_login(request):
 
 
 @login_required
-def like_post(request, pk):
-    if request.method == 'POST':
-        post = get_object_or_404(Post, pk=pk)
-        is_like = request.POST.get('is_like') == 'true'
-        
-        # Get or create like object
-        like, created = Like.objects.get_or_create(
-            user=request.user,
-            post=post,
-            defaults={'is_like': is_like}
+def like_post(request, post_id):
+    """Handle like/dislike actions via AJAX with optimized performance."""
+    if request.method != 'POST':
+        return JsonResponse(
+            {'success': False, 'error': 'Invalid request method'}, 
+            status=405
         )
-        
-        if not created:
-            # If like exists, update or delete
-            if like.is_like == is_like:
-                # Same vote, remove it
-                like.delete()
-                action = 'removed'
-            else:
-                # Different vote, update it
-                like.is_like = is_like
-                like.save()
-                action = 'updated'
-        else:
-            action = 'added'
-        
-        # Return JSON response for AJAX
-        return JsonResponse({
-            'success': True,
-            'like_count': post.get_like_count(),
-            'dislike_count': post.get_dislike_count(),
-            'user_vote': like_obj.is_like if like_obj else None
-        })
     
-    return JsonResponse({'success': False})
+    try:
+        # Get the post with minimal fields needed
+        post = get_object_or_404(Post.objects.only('id'), pk=post_id)
+        is_like_param = request.POST.get('is_like', '').lower()
+        
+        with transaction.atomic():
+            # Start with base queryset
+            like_qs = Like.objects.select_for_update().filter(
+                user=request.user,
+                post=post
+            )
+            
+            # Get existing like if it exists
+            existing_like = like_qs.first()
+            
+            # Handle toggle off (empty is_like parameter)
+            if is_like_param == '':
+                if existing_like:
+                    existing_like.delete()
+                
+                # Get updated counts in a single optimized query
+                counts = Like.objects.filter(post=post).aggregate(
+                    like_count=Count('id', filter=Q(is_like=True)),
+                    dislike_count=Count('id', filter=Q(is_like=False))
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'like_count': counts['like_count'],
+                    'dislike_count': counts['dislike_count'],
+                    'user_vote': None
+                })
+            
+            # Handle like/dislike
+            is_like = is_like_param == 'true'
+            
+            if existing_like:
+                if existing_like.is_like == is_like:
+                    # Toggle off
+                    existing_like.delete()
+                    user_vote = None
+                else:
+                    # Toggle between like/dislike
+                    existing_like.is_like = is_like
+                    existing_like.save(update_fields=['is_like'])
+                    user_vote = is_like
+            else:
+                # Create new like
+                Like.objects.create(
+                    user=request.user,
+                    post=post,
+                    is_like=is_like
+                )
+                user_vote = is_like
+            
+            # Get updated counts using a single query
+            counts = Like.objects.filter(post=post).aggregate(
+                like_count=Count('id', filter=Q(is_like=True)),
+                dislike_count=Count('id', filter=Q(is_like=False))
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'like_count': counts['like_count'],
+                'dislike_count': counts['dislike_count'],
+                'user_vote': user_vote
+            })
+            
+    except Exception as e:
+        logger.error(
+            f"Error in like_post for post {post_id}: {str(e)}",
+            exc_info=True,
+            extra={
+                'user': request.user.id if request.user.is_authenticated else None,
+                'post': post_id,
+                'is_like': request.POST.get('is_like')
+            }
+        )
+        return JsonResponse(
+            {'success': False, 'error': 'An error occurred while processing your request.'},
+            status=500
+        )
 
 
 @login_required
@@ -263,7 +329,20 @@ def profile_view(request, username):
     try:
         from django.contrib.auth.models import User
         user = get_object_or_404(User, username=username)
-        profile = get_object_or_404(Profile, user=user)
+        
+        # Get or create profile if it doesn't exist with safe defaults
+        profile, created = Profile.objects.get_or_create(
+            user=user,
+            defaults={
+                'privacy_setting': 'public',
+                'bio': ''
+            }
+        )
+        
+        # Ensure profile has all required fields
+        if not hasattr(profile, 'privacy_setting') or not profile.privacy_setting:
+            profile.privacy_setting = 'public'
+            profile.save()
         
         # Check if the current user can view this profile
         if not profile.can_view_profile(request.user):
@@ -274,32 +353,70 @@ def profile_view(request, username):
             return redirect('home')
         
         # Get profile picture URL with error handling
-        profile_picture_url = profile.get_profile_picture_url()
+        try:
+            profile_picture_url = profile.get_profile_picture_url()
+        except Exception as e:
+            logger.error(f"Error getting profile picture URL: {str(e)}")
+            profile_picture_url = '/static/images/default-avatar.png'
         
-        # Get user's public posts (only show published posts to non-owners)
-        user_posts = Post.objects.filter(author=user)
-        if request.user != user:  # Only show published posts to non-owners
-            user_posts = user_posts.filter(status='published')
-        user_posts = user_posts.order_by('-created_at')[:5]
+        # Get user's posts (show all posts to the owner, limit to 5 most recent)
+        try:
+            user_posts = Post.objects.filter(author=user).order_by('-created_at')
+            if request.user != user:  # For non-owners, only show posts with an image
+                user_posts = user_posts.exclude(image__isnull=True).exclude(image='')
+            user_posts = list(user_posts[:5])  # Convert to list after slicing
+            post_count = len(user_posts)  # Use len() since we have a list now
+        except Exception as e:
+            logger.error(f"Error getting user posts: {str(e)}")
+            user_posts = []
+            post_count = 0
         
         # Prepare social links if available
         social_links = {}
-        if profile.website:
-            social_links['Website'] = profile.website
-        if profile.twitter_handle:
-            social_links['Twitter'] = f'https://twitter.com/{profile.twitter_handle}'
-        if profile.github_username:
-            social_links['GitHub'] = f'https://github.com/{profile.github_username}'
+        try:
+            if hasattr(profile, 'website') and profile.website:
+                social_links['Website'] = profile.website
+            if hasattr(profile, 'twitter_handle') and profile.twitter_handle:
+                social_links['Twitter'] = f'https://twitter.com/{profile.twitter_handle}'
+            if hasattr(profile, 'github_username') and profile.github_username:
+                social_links['GitHub'] = f'https://github.com/{profile.github_username}'
+            # Add new social media fields
+            if hasattr(profile, 'facebook_url') and profile.facebook_url:
+                social_links['Facebook'] = profile.facebook_url
+            if hasattr(profile, 'instagram_username') and profile.instagram_username:
+                social_links['Instagram'] = f'https://instagram.com/{profile.instagram_username}'
+            if hasattr(profile, 'tiktok_username') and profile.tiktok_username:
+                social_links['TikTok'] = f'https://tiktok.com/@{profile.tiktok_username}'
+            if hasattr(profile, 'snapchat_username') and profile.snapchat_username:
+                social_links['Snapchat'] = f'https://snapchat.com/add/{profile.snapchat_username}'
+        except Exception as e:
+            logger.error(f"Error getting social links: {str(e)}")
+        
+        # Get follow data
+        is_following = False
+        if request.user.is_authenticated and request.user != user:
+            from .models import Follow
+            is_following = Follow.objects.filter(
+                follower=request.user, 
+                following=user
+            ).exists()
+            
+        # Get followers and following counts
+        followers_count = user.followers.count()
+        following_count = user.following.count()
         
         context = {
             'profile_user': user,
             'profile': profile,
             'profile_picture_url': profile_picture_url,
             'user_posts': user_posts,
-            'post_count': user_posts.count(),
+            'post_count': post_count,
             'social_links': social_links,
             'can_edit': request.user == user,
             'is_owner': request.user == user,
+            'is_following': is_following,
+            'followers_count': followers_count,
+            'following_count': following_count,
         }
         
         return render(request, 'blog/profile_view.html', context)
@@ -315,6 +432,111 @@ def user_logout(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('home')
+
+
+@login_required
+@require_POST
+def follow_user(request, username):
+    """View to follow/unfollow a user"""
+    try:
+        user_to_follow = get_user_model().objects.get(username=username)
+        if request.user == user_to_follow:
+            return JsonResponse({'error': 'You cannot follow yourself'}, status=400)
+        
+        from .models import Follow
+        follow, created = Follow.objects.get_or_create(
+            follower=request.user,
+            following=user_to_follow
+        )
+        
+        if not created:
+            follow.delete()
+            return JsonResponse({'status': 'unfollowed', 'count': user_to_follow.followers.count()})
+            
+        return JsonResponse({'status': 'followed', 'count': user_to_follow.followers.count()})
+        
+    except get_user_model().DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def get_user_data(user):
+    """Helper function to get user data for JSON response"""
+    try:
+        avatar_url = user.profile.profile_picture.url if user.profile.profile_picture else ''
+    except:
+        avatar_url = os.path.join(settings.STATIC_URL, 'images/default-avatar.png')
+    
+    return {
+        'username': user.username,
+        'full_name': user.get_full_name(),
+        'avatar': request.build_absolute_uri(avatar_url) if avatar_url else ''
+    }
+
+
+def followers_list(request, username):
+    """View to get list of followers for a user"""
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        user = get_user_model().objects.get(username=username)
+        followers = user.followers.all().select_related('follower')
+        
+        followers_data = [{
+            'username': follow.follower.username,
+            'full_name': follow.follower.get_full_name(),
+            'avatar': request.build_absolute_uri(follow.follower.profile.profile_picture.url) if hasattr(follow.follower, 'profile') and follow.follower.profile.profile_picture else ''
+        } for follow in followers]
+        
+        return JsonResponse(followers_data, safe=False)
+    except get_user_model().DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def following_list(request, username):
+    """View to get list of users that the given user is following"""
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        user = get_user_model().objects.get(username=username)
+        following = user.following.all().select_related('following')
+        
+        following_data = [{
+            'username': follow.following.username,
+            'full_name': follow.following.get_full_name(),
+            'avatar': request.build_absolute_uri(follow.following.profile.profile_picture.url) if hasattr(follow.following, 'profile') and follow.following.profile.profile_picture else ''
+        } for follow in following]
+        
+        return JsonResponse(following_data, safe=False)
+    except get_user_model().DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def followers_modal(request, username):
+    """View to display followers in a modal"""
+    user = get_object_or_404(get_user_model(), username=username)
+    followers = user.followers.all().select_related('follower')
+    return render(request, 'blog/includes/followers_modal.html', {
+        'followers': followers,
+        'profile_user': user
+    })
+
+
+def following_modal(request, username):
+    """View to display following list in a modal"""
+    user = get_object_or_404(get_user_model(), username=username)
+    following = user.following.all().select_related('following')
+    return render(request, 'blog/includes/following_modal.html', {
+        'following': following,
+        'profile_user': user
+    })
 
 
 def user_search(request):

@@ -1,0 +1,40 @@
+{% load static %}
+<div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Followers</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+            {% if followers %}
+                <div class="list-group list-group-flush">
+                    {% for follow in followers %}
+                        <div class="list-group-item d-flex align-items-center">
+                            {% with profile_pic=follow.follower.profile.profile_picture default_avatar=static 'images/default-avatar.png' %}
+                            <img src="{{ profile_pic.url }}" 
+                                 class="rounded-circle me-3" 
+                                 width="40" 
+                                 height="40"
+                                 onerror="this.onerror=null; this.src='{{ default_avatar }}'"
+                                 alt="{{ follow.follower.username }}'s profile picture">
+                            {% endwith %}
+                            <div>
+                                <a href="{% url 'profile_view' follow.follower.username %}" class="text-decoration-none fw-bold">
+                                    {{ follow.follower.username }}
+                                </a>
+                                {% if follow.follower.get_full_name %}
+                                    <div class="small text-muted">{{ follow.follower.get_full_name }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <p class="mb-0">No followers yet</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

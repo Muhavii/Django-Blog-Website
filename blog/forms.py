@@ -119,7 +119,11 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ['profile_picture', 'bio', 'location', 'birth_date', 'website', 'twitter_handle', 'github_username']
+        fields = [
+            'profile_picture', 'bio', 'location', 'birth_date', 'website',
+            'twitter_handle', 'github_username', 'facebook_url',
+            'instagram_username', 'tiktok_username', 'snapchat_username'
+        ]
         widgets = {
             'bio': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -140,10 +144,33 @@ class ProfileUpdateForm(forms.ModelForm):
             }),
             'twitter_handle': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': '@yourusername'
+                'placeholder': 'yourusername (without @)'
             }),
             'github_username': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'yourusername'
             }),
+            'facebook_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://facebook.com/yourprofile'
+            }),
+            'instagram_username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'yourusername (without @)'
+            }),
+            'tiktok_username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'yourusername (without @)'
+            }),
+            'snapchat_username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'yourusername (without @)'
+            }),
+        }
+        help_texts = {
+            'twitter_handle': 'Your Twitter/X username without the @ symbol',
+            'instagram_username': 'Your Instagram username without the @ symbol',
+            'tiktok_username': 'Your TikTok username without the @ symbol',
+            'snapchat_username': 'Your Snapchat username',
+            'facebook_url': 'Full URL to your Facebook profile',
         }

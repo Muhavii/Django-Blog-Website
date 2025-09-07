@@ -14,6 +14,11 @@ urlpatterns = [
     path('like/<int:post_id>/', views.like_post, name='like_post'),
     path('profile/settings/', views.profile_settings, name='profile_settings'),
     path('profile/<str:username>/', views.profile_view, name='profile_view'),
+    path('profile/<str:username>/follow/', views.follow_user, name='follow_user'),
+    path('profile/<str:username>/followers/', views.followers_list, name='followers_list'),
+    path('profile/<str:username>/following/', views.following_list, name='following_list'),
+    path('profile/<str:username>/followers/modal/', views.followers_modal, name='followers_modal'),
+    path('profile/<str:username>/following/modal/', views.following_modal, name='following_modal'),
     path('search/', views.user_search, name='user_search'),
     path('users/', RedirectView.as_view(pattern_name='user_search', permanent=False)),
 ]

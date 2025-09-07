@@ -3,117 +3,11 @@
 {% block title %}{{ profile_user.username }}'s Profile - Muhavi's Blog{% endblock %}
 
 {% block content %}
-{% if not is_owner and user.is_authenticated %}
-<!-- Message Modal -->
-<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="messageModalLabel">Send a message to {{ profile_user.username }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="messageForm" method="post" action="{% url 'send_message' profile_user.id %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="messageText" class="form-label">Your Message</label>
-                        <textarea class="form-control" id="messageText" name="message" rows="5" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Send Message</button>
-                </div>
-            </form>
-        </div>
+{% if not is_owner and request.user.is_authenticated %}
+    <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4">
+        <!-- Message functionality will be added in a future update -->
     </div>
-</div>
 {% endif %}
-
-{% block extra_js %}
-<script>
-// Initialize tooltips
-var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl)
-});
-
-// Follow button functionality
-const followButton = document.getElementById('followButton');
-if (followButton) {
-    followButton.addEventListener('click', function() {
-        const userId = this.dataset.userId;
-        // Implement follow functionality here
-        console.log('Follow user:', userId);
-        
-        // Toggle button state
-        const isFollowing = this.classList.contains('btn-outline-primary');
-        
-        if (isFollowing) {
-            this.innerHTML = '<i class="fas fa-user-check"></i> Following';
-            this.classList.remove('btn-outline-primary');
-            this.classList.add('btn-primary');
-        } else {
-            this.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
-            this.classList.remove('btn-primary');
-            this.classList.add('btn-outline-primary');
-        }
-    });
-}
-
-// Message form submission
-const messageForm = document.getElementById('messageForm');
-if (messageForm) {
-    messageForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        
-        fetch(this.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-success alert-dismissible fade show';
-                alert.role = 'alert';
-                alert.innerHTML = `
-                    Message sent successfully!
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                document.querySelector('.container').prepend(alert);
-                
-                // Hide modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('messageModal'));
-                modal.hide();
-                
-                // Clear form
-                this.reset();
-                
-                // Remove alert after 5 seconds
-                setTimeout(() => alert.remove(), 5000);
-            } else {
-                alert('Failed to send message. Please try again.');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
-        });
-    });
-}
-</script>
-{% endblock %}
-
-<style>
-/* Add custom styles here */
-</style>
 
 <div class="container my-5">
     <!-- Privacy Notice -->
@@ -155,11 +49,11 @@ if (messageForm) {
 
                     <!-- Profile Picture -->
                     <div class="mb-3">
-                        {% if profile_picture_url %}
-                            <img src="{{ profile_picture_url }}" 
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" 
                                  alt="{{ profile_user.username }}'s Profile Picture" 
                                  class="rounded-circle profile-pic-large blog-image"
-                                 onerror="this.onerror=null; this.src='/static/images/default-avatar.png';">
+                                 onerror="this.onerror=null; this.src='{{ MEDIA_URL }}default-avatar.png';">
                         {% else %}
                             <div class="default-avatar-large">
                                 <i class="fas fa-user fa-4x text-muted"></i>
@@ -190,41 +84,74 @@ if (messageForm) {
                             <div class="text-muted small">Posts</div>
                         </div>
                         <div class="col-4">
-                            <strong>{{ profile_user.date_joined|date:"M Y" }}</strong>
-                            <div class="text-muted small">Joined</div>
+                            <a href="#" class="text-decoration-none text-dark followers-link" 
+                               data-username="{{ profile_user.username }}">
+                                <strong id="followersCount">{{ followers_count }}</strong>
+                                <div class="text-muted small">Followers</div>
+                            </a>
                         </div>
                         <div class="col-4">
-                            {% if profile.location %}
-                            <strong><i class="fas fa-map-marker-alt"></i></strong>
-                            <div class="text-muted small">{{ profile.location }}</div>
-                            {% else %}
-                            <strong>-</strong>
-                            <div class="text-muted small">Location</div>
-                            {% endif %}
+                            <a href="#" class="text-decoration-none text-dark following-link"
+                               data-username="{{ profile_user.username }}">
+                                <strong id="followingCount">{{ following_count }}</strong>
+                                <div class="text-muted small">Following</div>
+                            </a>
                         </div>
                     </div>
 
                     <!-- Social Links -->
-                    {% if social_links %}
                     <div class="mb-3">
-                        {% for name, url in social_links.items %}
-                            {% if name == 'Website' %}
-                            <a href="{{ url }}" target="_blank" class="btn btn-outline-primary btn-sm me-2 mb-2" 
-                               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ url }}">
-                                <i class="fas fa-globe"></i> {{ name }}
-                            </a>
-                            {% elif name == 'Twitter' %}
-                            <a href="{{ url }}" target="_blank" class="btn btn-outline-info btn-sm me-2 mb-2">
-                                <i class="fab fa-twitter"></i> {{ name }}
-                            </a>
-                            {% elif name == 'GitHub' %}
-                            <a href="{{ url }}" target="_blank" class="btn btn-outline-dark btn-sm mb-2">
-                                <i class="fab fa-github"></i> {{ name }}
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            {% if profile.website %}
+                            <a href="{{ profile.website }}" target="_blank" class="btn btn-outline-primary btn-sm" 
+                               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ profile.website }}">
+                                <i class="fas fa-globe"></i>
                             </a>
                             {% endif %}
-                        {% endfor %}
+                            
+                            {% if profile.twitter_handle %}
+                            <a href="https://twitter.com/{{ profile.twitter_handle }}" target="_blank" 
+                               class="btn btn-outline-info btn-sm" title="@{{ profile.twitter_handle }}">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if profile.github_username %}
+                            <a href="https://github.com/{{ profile.github_username }}" target="_blank" 
+                               class="btn btn-outline-dark btn-sm" title="{{ profile.github_username }}">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if profile.facebook_url %}
+                            <a href="{{ profile.facebook_url }}" target="_blank" 
+                               class="btn btn-outline-primary btn-sm" title="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if profile.instagram_username %}
+                            <a href="https://instagram.com/{{ profile.instagram_username }}" target="_blank" 
+                               class="btn btn-danger bg-gradient btn-sm" title="@{{ profile.instagram_username }}">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if profile.tiktok_username %}
+                            <a href="https://tiktok.com/@{{ profile.tiktok_username }}" target="_blank" 
+                               class="btn btn-dark btn-sm" title="@{{ profile.tiktok_username }}">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if profile.snapchat_username %}
+                            <a href="https://snapchat.com/add/{{ profile.snapchat_username }}" target="_blank" 
+                               class="btn btn-warning btn-sm" title="{{ profile.snapchat_username }}">
+                                <i class="fab fa-snapchat-ghost"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endif %}
                     
                     <!-- Member Since -->
                     <div class="text-muted small mt-2">
@@ -238,13 +165,16 @@ if (messageForm) {
                         <a href="{% url 'profile_settings' %}" class="btn btn-primary">
                             <i class="fas fa-edit"></i> Edit Profile
                         </a>
-                        {% elif user.is_authenticated %}
-                        <button class="btn btn-outline-primary" id="followButton" data-user-id="{{ profile_user.id }}">
-                            <i class="fas fa-user-plus"></i> Follow
-                        </button>
-                        <button class="btn btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#messageModal">
-                            <i class="fas fa-envelope"></i> Message
-                        </button>
+                        {% else %}
+                            {% if user.is_authenticated %}
+                            <button class="btn {% if is_following %}btn-outline-secondary{% else %}btn-primary{% endif %}" 
+                                    id="followButton" 
+                                    data-username="{{ profile_user.username }}"
+                                    data-following="{{ is_following|yesno:'true,false' }}">
+                                <i class="fas fa-{% if is_following %}user-check{% else %}user-plus{% endif %}"></i>
+                                {% if is_following %}Following{% else %}Follow{% endif %}
+                            </button>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -287,12 +217,29 @@ if (messageForm) {
                                 <i class="fas fa-eye"></i> {{ post.view_count }} views
                             </small>
                             <div>
+                                {% if user.is_authenticated %}
+                                <button class="btn btn-xs btn-outline-success like-btn me-1" 
+                                        data-post-id="{{ post.pk }}" 
+                                        data-user-vote="{{ post.get_user_vote|default:'' }}"
+                                        data-is-like="true">
+                                    <i class="fas fa-thumbs-up"></i> 
+                                    <span class="like-count">{{ post.get_like_count }}</span>
+                                </button>
+                                <button class="btn btn-xs btn-outline-danger dislike-btn" 
+                                        data-post-id="{{ post.pk }}" 
+                                        data-user-vote="{{ post.get_user_vote|default:'' }}"
+                                        data-is-like="false">
+                                    <i class="fas fa-thumbs-down"></i> 
+                                    <span class="dislike-count">{{ post.get_dislike_count }}</span>
+                                </button>
+                                {% else %}
                                 <span class="badge bg-success me-1">
                                     <i class="fas fa-thumbs-up"></i> {{ post.get_like_count }}
                                 </span>
                                 <span class="badge bg-danger">
                                     <i class="fas fa-thumbs-down"></i> {{ post.get_dislike_count }}
                                 </span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="mt-2">
@@ -327,12 +274,209 @@ if (messageForm) {
     </div>
 </div>
 
+{% endblock %}
+
+<!-- Modal Container -->
+<div class="modal fade" id="userListModal" tabindex="-1" aria-labelledby="userListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" id="modalContent">
+            <!-- Content will be loaded here via AJAX -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% load static %}
+{% block extra_js %}
+<script>
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+
+// Follow button functionality
+const followButton = document.getElementById('followButton');
+if (followButton) {
+    followButton.addEventListener('click', function() {
+        const username = this.dataset.username;
+        const isFollowing = this.dataset.following === 'true';
+        const button = this;
+        
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        fetch(`/profile/${username}/follow/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'followed' || data.status === 'unfollowed') {
+                // Update button state
+                const isNowFollowing = data.status === 'followed';
+                button.dataset.following = isNowFollowing.toString();
+                button.innerHTML = `
+                    <i class="fas fa-${isNowFollowing ? 'user-check' : 'user-plus'}"></i>
+                    ${isNowFollowing ? 'Following' : 'Follow'}
+                `;
+                button.classList.toggle('btn-primary', !isNowFollowing);
+                button.classList.toggle('btn-outline-secondary', isNowFollowing);
+                
+                // Update followers count
+                const followersCount = document.getElementById('followersCount');
+                if (followersCount) {
+                    followersCount.textContent = data.count;
+                }
+            } else if (data.error) {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    });
+}
+
+// Initialize modals for followers and following
+function initializeModals() {
+    // Handle followers link click
+    document.querySelectorAll('.followers-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const username = this.dataset.username;
+            const modal = new bootstrap.Modal(document.getElementById('userListModal'));
+            const modalContent = document.getElementById('modalContent');
+            
+            // Show loading spinner
+            modalContent.innerHTML = `
+                <div class="modal-header">
+                    <h5 class="modal-title">Followers</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>`;
+            
+            // Show modal
+            modal.show();
+            
+            // Load content via AJAX
+            fetch(`/profile/${username}/followers/modal/`)
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading followers:', error);
+                    modalContent.innerHTML = `
+                        <div class="modal-header">
+                            <h5 class="modal-title">Error</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-danger">Error loading followers. Please try again.</p>
+                        </div>`;
+                });
+        });
+    });
+
+    // Handle following link click
+    document.querySelectorAll('.following-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const username = this.dataset.username;
+            const modal = new bootstrap.Modal(document.getElementById('userListModal'));
+            const modalContent = document.getElementById('modalContent');
+            
+            // Show loading spinner
+            modalContent.innerHTML = `
+                <div class="modal-header">
+                    <h5 class="modal-title">Following</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>`;
+            
+            // Show modal
+            modal.show();
+            
+            // Load content via AJAX
+            fetch(`/profile/${username}/following/modal/`)
+                .then(response => response.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading following:', error);
+                    modalContent.innerHTML = `
+                        <div class="modal-header">
+                            <h5 class="modal-title">Error</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-danger">Error loading following list. Please try again.</p>
+                        </div>`;
+                });
+        });
+    });
+}
+
+// Initialize modals when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeModals();
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}
+
 <style>
 .profile-pic-large {
     width: 150px;
     height: 150px;
     object-fit: cover;
     border: 4px solid #dee2e6;
+    border-radius: 50%;
 }
 
 .default-avatar-large {
@@ -347,5 +491,3 @@ if (messageForm) {
     margin: 0 auto;
 }
 </style>
-
-{% endblock %}

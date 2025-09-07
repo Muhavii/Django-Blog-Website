@@ -90,12 +90,76 @@
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="{{ profile_form.twitter_handle.id_for_label }}" class="form-label">Twitter Handle</label>
-                                {{ profile_form.twitter_handle }}
+                                <label for="{{ profile_form.twitter_handle.id_for_label }}" class="form-label">
+                                    <i class="fab fa-twitter text-primary"></i> Twitter
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    {{ profile_form.twitter_handle }}
+                                </div>
+                                {% if profile_form.twitter_handle.help_text %}
+                                    <small class="form-text text-muted">{{ profile_form.twitter_handle.help_text }}</small>
+                                {% endif %}
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="{{ profile_form.github_username.id_for_label }}" class="form-label">GitHub Username</label>
+                                <label for="{{ profile_form.github_username.id_for_label }}" class="form-label">
+                                    <i class="fab fa-github"></i> GitHub
+                                </label>
                                 {{ profile_form.github_username }}
+                                {% if profile_form.github_username.help_text %}
+                                    <small class="form-text text-muted">{{ profile_form.github_username.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.facebook_url.id_for_label }}" class="form-label">
+                                    <i class="fab fa-facebook text-primary"></i> Facebook
+                                </label>
+                                {{ profile_form.facebook_url }}
+                                {% if profile_form.facebook_url.help_text %}
+                                    <small class="form-text text-muted">{{ profile_form.facebook_url.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.instagram_username.id_for_label }}" class="form-label">
+                                    <i class="fab fa-instagram text-danger"></i> Instagram
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    {{ profile_form.instagram_username }}
+                                </div>
+                                {% if profile_form.instagram_username.help_text %}
+                                    <small class="form-text text-muted">{{ profile_form.instagram_username.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.tiktok_username.id_for_label }}" class="form-label">
+                                    <i class="fab fa-tiktok"></i> TikTok
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    {{ profile_form.tiktok_username }}
+                                </div>
+                                {% if profile_form.tiktok_username.help_text %}
+                                    <small class="form-text text-muted">{{ profile_form.tiktok_username.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.snapchat_username.id_for_label }}" class="form-label">
+                                    <i class="fab fa-snapchat-ghost text-warning"></i> Snapchat
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@</span>
+                                    {{ profile_form.snapchat_username }}
+                                </div>
+                                {% if profile_form.snapchat_username.help_text %}
+                                    <small class="form-text text-muted">{{ profile_form.snapchat_username.help_text }}</small>
+                                {% endif %}
                             </div>
                         </div>
 

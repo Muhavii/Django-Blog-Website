@@ -1,8 +1,10 @@
 import logging
+import os
 from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
+from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from cloudinary_storage.storage import MediaCloudinaryStorage
@@ -71,6 +73,19 @@ class Like(models.Model):
         return f'{self.user.username} {vote_type} {self.post.title}'
 
 
+class Follow(models.Model):
+    follower = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
+    following = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.follower} follows {self.following}"
+
+
 class Profile(models.Model):
     PRIVACY_CHOICES = [
         ('public', 'Public - Anyone can view my profile'),
@@ -84,8 +99,13 @@ class Profile(models.Model):
     location = models.CharField(max_length=100, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     website = models.URLField(blank=True)
-    twitter_handle = models.CharField(max_length=50, blank=True)
-    github_username = models.CharField(max_length=50, blank=True)
+    twitter_handle = models.CharField(max_length=50, blank=True, help_text='Your Twitter/X username (without @)')
+    github_username = models.CharField(max_length=50, blank=True, help_text='Your GitHub username')
+    facebook_url = models.URLField(blank=True, help_text='Your Facebook profile URL')
+    instagram_username = models.CharField(max_length=50, blank=True, help_text='Your Instagram username (without @)')
+    tiktok_username = models.CharField(max_length=50, blank=True, help_text='Your TikTok username (without @)')
+    snapchat_username = models.CharField(max_length=50, blank=True, help_text='Your Snapchat username')
+    linkedin_url = models.URLField(blank=True, help_text='Your LinkedIn profile URL')
     privacy_setting = models.CharField(
         max_length=20,
         choices=PRIVACY_CHOICES,
@@ -148,6 +168,31 @@ class Profile(models.Model):
             raise
 
     def get_profile_picture_url(self):
-        if self.profile_picture:
-            return self.profile_picture.url
-        return '/static/images/default-avatar.png'
+        """
+        Get the URL for the user's profile picture.
+        Returns Cloudinary URL if available, otherwise returns the local URL or default.
+        """
+        try:
+            # If no profile picture is set, return default
+            if not self.profile_picture:
+                return '/static/images/default-avatar.png'
+                
+            # Try to get Cloudinary URL if available
+            if hasattr(self.profile_picture, 'url') and self.profile_picture.url:
+                # If using Cloudinary, the URL will be a full URL
+                if self.profile_picture.url.startswith(('http://', 'https://')):
+                    return self.profile_picture.url
+                # If it's a local path, prepend MEDIA_URL
+                return f"{settings.MEDIA_URL}{self.profile_picture}"
+                
+            # Fallback to the file path
+            if hasattr(self.profile_picture, 'path') and os.path.exists(self.profile_picture.path):
+                return self.profile_picture.url
+                
+            # If we're here, the file might be missing but the reference exists
+            logger.warning(f"Profile picture file missing for user {self.user.username}")
+            return '/static/images/default-avatar.png'
+            
+        except Exception as e:
+            logger.error(f"Error in get_profile_picture_url for user {getattr(self.user, 'username', 'unknown')}: {str(e)}")
+            return '/static/images/default-avatar.png'
