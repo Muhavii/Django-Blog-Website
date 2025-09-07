@@ -4,6 +4,20 @@ from django.contrib.auth.models import User
 from .models import Post, Comment, Profile
 
 
+class UserSearchForm(forms.Form):
+    """Form for searching users"""
+    query = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search users by name, username, or email...',
+            'aria-label': 'Search users'
+        }),
+        label='',
+        max_length=100
+    )
+
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post

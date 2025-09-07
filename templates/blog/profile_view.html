@@ -3,12 +3,156 @@
 {% block title %}{{ profile_user.username }}'s Profile - Muhavi's Blog{% endblock %}
 
 {% block content %}
+{% if not is_owner and user.is_authenticated %}
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Send a message to {{ profile_user.username }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="messageForm" method="post" action="{% url 'send_message' profile_user.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="messageText" class="form-label">Your Message</label>
+                        <textarea class="form-control" id="messageText" name="message" rows="5" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% block extra_js %}
+<script>
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+});
+
+// Follow button functionality
+const followButton = document.getElementById('followButton');
+if (followButton) {
+    followButton.addEventListener('click', function() {
+        const userId = this.dataset.userId;
+        // Implement follow functionality here
+        console.log('Follow user:', userId);
+        
+        // Toggle button state
+        const isFollowing = this.classList.contains('btn-outline-primary');
+        
+        if (isFollowing) {
+            this.innerHTML = '<i class="fas fa-user-check"></i> Following';
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+        } else {
+            this.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+            this.classList.remove('btn-primary');
+            this.classList.add('btn-outline-primary');
+        }
+    });
+}
+
+// Message form submission
+const messageForm = document.getElementById('messageForm');
+if (messageForm) {
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.role = 'alert';
+                alert.innerHTML = `
+                    Message sent successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.container').prepend(alert);
+                
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('messageModal'));
+                modal.hide();
+                
+                // Clear form
+                this.reset();
+                
+                // Remove alert after 5 seconds
+                setTimeout(() => alert.remove(), 5000);
+            } else {
+                alert('Failed to send message. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    });
+}
+</script>
+{% endblock %}
+
+<style>
+/* Add custom styles here */
+</style>
+
 <div class="container my-5">
+    <!-- Privacy Notice -->
+    {% if profile.privacy_setting == 'private' and not is_owner %}
+    <div class="alert alert-warning">
+        <i class="fas fa-lock me-2"></i>
+        This profile is private. Only the owner can view it.
+    </div>
+    {% elif profile.privacy_setting == 'registered_users' and not request.user.is_authenticated %}
+    <div class="alert alert-info">
+        <i class="fas fa-user-shield me-2"></i>
+        Please <a href="{% url 'login' %}?next={{ request.path }}">log in</a> to view this profile.
+    </div>
+    {% endif %}
+
     <div class="row">
         <!-- Profile Information -->
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-body text-center">
+                    <!-- Profile Privacy Badge -->
+                    {% if is_owner %}
+                    <div class="mb-2">
+                        {% if profile.privacy_setting == 'public' %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-globe"></i> Public
+                        </span>
+                        {% elif profile.privacy_setting == 'registered' %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-user-shield"></i> Registered Users
+                        </span>
+                        {% else %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-lock"></i> Private
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
                     <!-- Profile Picture -->
                     <div class="mb-3">
                         {% if profile_picture_url %}
@@ -28,7 +172,15 @@
                     <p class="text-muted mb-3">@{{ profile_user.username }}</p>
                     
                     {% if profile.bio %}
-                    <p class="mb-3">{{ profile.bio }}</p>
+                    <div class="mb-3">
+                        <p class="mb-0">{{ profile.bio|linebreaksbr }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.location %}
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-map-marker-alt me-1"></i> {{ profile.location }}
+                    </p>
                     {% endif %}
 
                     <!-- Stats -->
@@ -53,32 +205,48 @@
                     </div>
 
                     <!-- Social Links -->
-                    {% if profile.website or profile.twitter_handle or profile.github_username %}
+                    {% if social_links %}
                     <div class="mb-3">
-                        {% if profile.website %}
-                        <a href="{{ profile.website }}" target="_blank" class="btn btn-outline-primary btn-sm me-2">
-                            <i class="fas fa-globe"></i> Website
-                        </a>
-                        {% endif %}
-                        {% if profile.twitter_handle %}
-                        <a href="https://twitter.com/{{ profile.twitter_handle|cut:'@' }}" target="_blank" class="btn btn-outline-info btn-sm me-2">
-                            <i class="fab fa-twitter"></i> Twitter
-                        </a>
-                        {% endif %}
-                        {% if profile.github_username %}
-                        <a href="https://github.com/{{ profile.github_username }}" target="_blank" class="btn btn-outline-dark btn-sm">
-                            <i class="fab fa-github"></i> GitHub
-                        </a>
-                        {% endif %}
+                        {% for name, url in social_links.items %}
+                            {% if name == 'Website' %}
+                            <a href="{{ url }}" target="_blank" class="btn btn-outline-primary btn-sm me-2 mb-2" 
+                               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ url }}">
+                                <i class="fas fa-globe"></i> {{ name }}
+                            </a>
+                            {% elif name == 'Twitter' %}
+                            <a href="{{ url }}" target="_blank" class="btn btn-outline-info btn-sm me-2 mb-2">
+                                <i class="fab fa-twitter"></i> {{ name }}
+                            </a>
+                            {% elif name == 'GitHub' %}
+                            <a href="{{ url }}" target="_blank" class="btn btn-outline-dark btn-sm mb-2">
+                                <i class="fab fa-github"></i> {{ name }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
                     </div>
                     {% endif %}
+                    
+                    <!-- Member Since -->
+                    <div class="text-muted small mt-2">
+                        <i class="far fa-calendar-alt me-1"></i>
+                        Member since {{ profile_user.date_joined|date:"F Y" }}
+                    </div>
 
-                    <!-- Edit Profile Button (only for own profile) -->
-                    {% if user == profile_user %}
-                    <a href="{% url 'profile_settings' %}" class="btn btn-primary">
-                        <i class="fas fa-edit"></i> Edit Profile
-                    </a>
-                    {% endif %}
+                    <!-- Action Buttons -->
+                    <div class="mt-3">
+                        {% if is_owner %}
+                        <a href="{% url 'profile_settings' %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                        {% elif user.is_authenticated %}
+                        <button class="btn btn-outline-primary" id="followButton" data-user-id="{{ profile_user.id }}">
+                            <i class="fas fa-user-plus"></i> Follow
+                        </button>
+                        <button class="btn btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#messageModal">
+                            <i class="fas fa-envelope"></i> Message
+                        </button>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -86,8 +254,14 @@
         <!-- User's Posts -->
         <div class="col-lg-8">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3>Recent Posts by {{ profile_user.username }}</h3>
-                {% if user == profile_user %}
+                <h3>
+                    {% if is_owner %}
+                    Your Recent Posts
+                    {% else %}
+                    Posts by {{ profile_user.username }}
+                    {% endif %}
+                </h3>
+                {% if is_owner %}
                 <a href="{% url 'create_post' %}" class="btn btn-success">
                     <i class="fas fa-plus"></i> New Post
                 </a>
@@ -173,4 +347,5 @@
     margin: 0 auto;
 }
 </style>
+
 {% endblock %}

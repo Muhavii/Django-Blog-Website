@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -13,4 +14,6 @@ urlpatterns = [
     path('like/<int:post_id>/', views.like_post, name='like_post'),
     path('profile/settings/', views.profile_settings, name='profile_settings'),
     path('profile/<str:username>/', views.profile_view, name='profile_view'),
+    path('search/', views.user_search, name='user_search'),
+    path('users/', RedirectView.as_view(pattern_name='user_search', permanent=False)),
 ]

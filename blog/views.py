@@ -2,11 +2,13 @@ import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse
 from django.db import IntegrityError
+from django.db.models import Q
+from django.contrib.auth import get_user_model
 from .models import Post, Comment, Like, Profile
-from .forms import PostForm, CommentForm, UserRegistrationForm, UserUpdateForm, ProfileUpdateForm
+from .forms import PostForm, CommentForm, UserRegistrationForm, UserUpdateForm, ProfileUpdateForm, UserSearchForm
 
 
 def home(request):
@@ -254,7 +256,7 @@ def profile_settings(request):
 
 
 def profile_view(request, username):
-    """View to display a user's profile"""
+    """View to display a user's profile with privacy controls"""
     logger = logging.getLogger(__name__)
     logger.info(f"Profile view called for username: {username}")
     
@@ -263,43 +265,49 @@ def profile_view(request, username):
         user = get_object_or_404(User, username=username)
         profile = get_object_or_404(Profile, user=user)
         
-        # Log profile details
-        logger.info(f"Found user: {user.username}, Profile ID: {profile.id}")
+        # Check if the current user can view this profile
+        if not profile.can_view_profile(request.user):
+            if not request.user.is_authenticated:
+                messages.warning(request, 'Please log in to view this profile.')
+                return redirect('login') + f'?next={request.path}'
+            messages.error(request, 'You do not have permission to view this profile.')
+            return redirect('home')
         
         # Get profile picture URL with error handling
-        profile_picture_url = None
-        if profile.profile_picture:
-            try:
-                profile_picture_url = profile.profile_picture.url
-                logger.info(f"Profile picture URL: {profile_picture_url}")
-            except Exception as e:
-                logger.error(f"Error getting profile picture URL: {str(e)}")
-                profile_picture_url = '/static/images/default-avatar.png'
-        else:
-            logger.info("No profile picture found, using default avatar")
-            profile_picture_url = '/static/images/default-avatar.png'
+        profile_picture_url = profile.get_profile_picture_url()
         
-        # Get user's posts
-        user_posts = Post.objects.filter(author=user).order_by('-created_at')[:5]
+        # Get user's public posts (only show published posts to non-owners)
+        user_posts = Post.objects.filter(author=user)
+        if request.user != user:  # Only show published posts to non-owners
+            user_posts = user_posts.filter(status='published')
+        user_posts = user_posts.order_by('-created_at')[:5]
+        
+        # Prepare social links if available
+        social_links = {}
+        if profile.website:
+            social_links['Website'] = profile.website
+        if profile.twitter_handle:
+            social_links['Twitter'] = f'https://twitter.com/{profile.twitter_handle}'
+        if profile.github_username:
+            social_links['GitHub'] = f'https://github.com/{profile.github_username}'
         
         context = {
             'profile_user': user,
             'profile': profile,
             'profile_picture_url': profile_picture_url,
             'user_posts': user_posts,
-            'post_count': Post.objects.filter(author=user).count(),
-            'debug': {
-                'has_profile_picture': bool(profile.profile_picture),
-                'picture_url': profile_picture_url,
-                'storage_class': str(profile.profile_picture.storage.__class__) if profile.profile_picture else 'No picture',
-            },
+            'post_count': user_posts.count(),
+            'social_links': social_links,
+            'can_edit': request.user == user,
+            'is_owner': request.user == user,
         }
         
         return render(request, 'blog/profile_view.html', context)
         
     except Exception as e:
         logger.error(f"Error in profile_view: {str(e)}", exc_info=True)
-        raise
+        messages.error(request, 'An error occurred while loading the profile.')
+        return redirect('home')
 
 
 def user_logout(request):
@@ -307,3 +315,44 @@ def user_logout(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('home')
+
+
+def user_search(request):
+    """View for searching users"""
+    form = UserSearchForm(request.GET or None)
+    users = []
+    
+    if form.is_valid() and form.cleaned_data.get('query'):
+        query = form.cleaned_data['query']
+        users = get_user_model().objects.filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(email__icontains=query)
+        ).select_related('profile').order_by('username')
+        
+        # Filter out users with private profiles if not the owner
+        if not request.user.is_authenticated:
+            users = users.filter(profile__privacy_setting='public')
+        elif not request.user.is_superuser:  # Admins can see all users
+            users = users.exclude(
+                ~Q(profile__user=request.user) & 
+                Q(profile__privacy_setting='private')
+            )
+    
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(users, 10)  # 10 users per page
+    
+    try:
+        users = paginator.page(page)
+    except PageNotAnInteger:
+        users = paginator.page(1)
+    except EmptyPage:
+        users = paginator.page(paginator.num_pages)
+    
+    return render(request, 'blog/user_search.html', {
+        'form': form,
+        'users': users,
+        'query': request.GET.get('query', '')
+    })

@@ -72,16 +72,40 @@ class Like(models.Model):
 
 
 class Profile(models.Model):
+    PRIVACY_CHOICES = [
+        ('public', 'Public - Anyone can view my profile'),
+        ('private', 'Private - Only I can view my profile'),
+        ('registered', 'Registered Users - Only logged-in users can view my profile'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     bio = models.TextField(max_length=500, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='default-avatar.png')
     location = models.CharField(max_length=100, blank=True)
-    birth_date = models.DateField(blank=True, null=True)
+    birth_date = models.DateField(null=True, blank=True)
     website = models.URLField(blank=True)
     twitter_handle = models.CharField(max_length=50, blank=True)
     github_username = models.CharField(max_length=50, blank=True)
+    privacy_setting = models.CharField(
+        max_length=20,
+        choices=PRIVACY_CHOICES,
+        default='public',
+        help_text='Control who can view your profile'
+    )
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    def can_view_profile(self, requesting_user):
+        """Check if the requesting user can view this profile"""
+        if self.privacy_setting == 'public':
+            return True
+        if not requesting_user.is_authenticated:
+            return False
+        if self.privacy_setting == 'registered':
+            return True
+        if self.privacy_setting == 'private' and requesting_user == self.user:
+            return True
+        return False
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Users - Muhavi's Blog{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-search me-2"></i>Search Users
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" 
+                                   name="query" 
+                                   class="form-control" 
+                                   placeholder="Search by username, first name, last name, or email..."
+                                   value="{{ query|default:'' }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+
+                    {% if query %}
+                        <h5 class="mb-4">
+                            Search results for "{{ query }}"
+                            {% if users %}
+                                <span class="badge bg-secondary">{{ users.paginator.count }} found</span>
+                            {% endif %}
+                        </h5>
+
+                        {% if users %}
+                            <div class="list-group">
+                                {% for user in users %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0">
+                                                <img src="{{ user.profile.get_profile_picture_url }}" 
+                                                     alt="{{ user.username }}'s profile picture"
+                                                     class="rounded-circle"
+                                                     width="50"
+                                                     height="50"
+                                                     onerror="this.onerror=null; this.src='/static/images/default-avatar.png';">
+                                            </div>
+                                            <div class="flex-grow-1 ms-3">
+                                                <h6 class="mb-1">
+                                                    <a href="{% url 'profile_view' user.username %}" class="text-decoration-none">
+                                                        {{ user.get_full_name|default:user.username }}
+                                                    </a>
+                                                    {% if user == request.user %}
+                                                        <span class="badge bg-secondary">You</span>
+                                                    {% endif %}
+                                                </h6>
+                                                <p class="mb-1 text-muted">@{{ user.username }}</p>
+                                                {% if user.profile.bio %}
+                                                    <p class="mb-0 small text-muted">{{ user.profile.bio|truncatewords:15 }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <a href="{% url 'profile_view' user.username %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    View Profile
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Pagination -->
+                            {% if users.has_other_pages %}
+                            <nav aria-label="User pagination" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if users.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?query={{ query }}&page=1" aria-label="First">
+                                                <span aria-hidden="true">&laquo;&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?query={{ query }}&page={{ users.previous_page_number }}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">&laquo;&laquo;</span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">&laquo;</span>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in users.paginator.page_range %}
+                                        {% if users.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?query={{ query }}&page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if users.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?query={{ query }}&page={{ users.next_page_number }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?query={{ query }}&page={{ users.paginator.num_pages }}" aria-label="Last">
+                                                <span aria-hidden="true">&raquo;&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">&raquo;</span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">&raquo;&raquo;</span>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No users found matching your search.
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                            <h4>Find Other Users</h4>
+                            <p class="text-muted">Search for users by their username, name, or email address.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
