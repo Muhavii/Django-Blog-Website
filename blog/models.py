@@ -1,8 +1,13 @@
+import logging
 from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
-from PIL import Image
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from cloudinary_storage.storage import MediaCloudinaryStorage
+
+logger = logging.getLogger(__name__)
 
 
 class Post(models.Model):
@@ -82,15 +87,41 @@ class Profile(models.Model):
         return f"{self.user.username}'s Profile"
 
     def save(self, *args, **kwargs):
-        # Check if this is a new instance or if the profile picture is being updated
-        if self.pk:
-            old_instance = Profile.objects.get(pk=self.pk)
-            if old_instance.profile_picture and old_instance.profile_picture != self.profile_picture:
-                # Delete old profile picture if it's not the default
-                if 'default-avatar' not in old_instance.profile_picture.url:
-                    old_instance.profile_picture.delete(save=False)
-        
-        super().save(*args, **kwargs)
+        try:
+            # If this is an existing instance
+            if self.pk:
+                old_instance = Profile.objects.get(pk=self.pk)
+                
+                # Check if profile picture is being changed
+                if old_instance.profile_picture and old_instance.profile_picture != self.profile_picture:
+                    logger.info(f"Profile picture changed for user {self.user.username}")
+                    logger.info(f"Old picture: {old_instance.profile_picture}")
+                    logger.info(f"New picture: {self.profile_picture}")
+                    
+                    # Only delete if it's not the default avatar
+                    if hasattr(old_instance.profile_picture, 'url') and 'default-avatar' not in old_instance.profile_picture.url:
+                        try:
+                            logger.info(f"Attempting to delete old profile picture: {old_instance.profile_picture}")
+                            storage = old_instance.profile_picture.storage
+                            storage.delete(old_instance.profile_picture.name)
+                            logger.info("Successfully deleted old profile picture")
+                        except Exception as e:
+                            logger.error(f"Error deleting old profile picture: {str(e)}")
+            
+            # Save the instance
+            super().save(*args, **kwargs)
+            
+            # If this is a new profile picture, log its details
+            if self.profile_picture:
+                logger.info(f"Profile picture saved successfully for {self.user.username}")
+                if hasattr(self.profile_picture, 'url'):
+                    logger.info(f"New picture URL: {self.profile_picture.url}")
+                else:
+                    logger.warning("Profile picture has no URL attribute")
+                    
+        except Exception as e:
+            logger.error(f"Error in Profile.save(): {str(e)}", exc_info=True)
+            raise
 
     def get_profile_picture_url(self):
         if self.profile_picture:

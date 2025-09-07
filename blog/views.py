@@ -186,57 +186,119 @@ def profile_settings(request):
         
         if user_form.is_valid() and profile_form.is_valid():
             try:
+                import logging
+                logger = logging.getLogger(__name__)
+                
+                # Log before saving
+                logger.info(f"Saving profile for user: {request.user.username}")
+                
                 # Save user data first
                 user = user_form.save(commit=False)
                 user.save()
                 
-                # Handle profile picture separately
+                # Handle profile
                 profile = profile_form.save(commit=False)
+                
+                # Check if a new profile picture was uploaded
                 if 'profile_picture' in request.FILES:
-                    # Delete old profile picture if it exists
-                    if profile.profile_picture and hasattr(profile.profile_picture, 'url'):
-                        # Only delete if it's not the default image
-                        if 'default-avatar' not in profile.profile_picture.url:
-                            profile.profile_picture.delete(save=False)
-                    # New file will be automatically uploaded to Cloudinary
+                    logger.info("New profile picture detected in request.FILES")
                     
-                profile.save()
+                    # Get the old picture before saving
+                    old_picture = None
+                    if hasattr(profile, 'profile_picture') and profile.profile_picture:
+                        old_picture = profile.profile_picture
+                        logger.info(f"Old picture URL: {old_picture.url if hasattr(old_picture, 'url') else 'No URL'}")
+                    
+                    # Save the profile to get the new file path
+                    profile.save()
+                    
+                    # Log the new picture details
+                    if hasattr(profile.profile_picture, 'url'):
+                        logger.info(f"New picture URL after save: {profile.profile_picture.url}")
+                    
+                    # If there was an old picture and it's different from the new one, delete it
+                    if old_picture and (not hasattr(profile.profile_picture, 'url') or 
+                                      old_picture.url != profile.profile_picture.url):
+                        try:
+                            logger.info("Attempting to delete old profile picture")
+                            old_picture.delete(save=False)
+                            logger.info("Successfully deleted old profile picture")
+                        except Exception as e:
+                            logger.error(f"Error deleting old profile picture: {str(e)}")
+                else:
+                    # No new picture, just save the profile
+                    profile.save()
+                
                 messages.success(request, 'Your profile has been updated successfully!')
                 return redirect('profile_settings')
                 
             except Exception as e:
-                messages.error(request, f'Error updating profile: {str(e)}')
+                logger.error(f"Error in profile_settings view: {str(e)}", exc_info=True)
+                messages.error(request, f'Error updating profile. Please try again. Error: {str(e)}')
     else:
         user_form = UserUpdateForm(instance=request.user)
         profile_form = ProfileUpdateForm(instance=request.user.profile)
     
+    # Add debug information to context
     context = {
         'user_form': user_form,
-        'profile_form': profile_form
+        'profile_form': profile_form,
+        'debug': {
+            'has_profile': hasattr(request.user, 'profile'),
+            'has_picture': hasattr(request.user, 'profile') and bool(request.user.profile.profile_picture),
+            'picture_url': request.user.profile.get_profile_picture_url() if hasattr(request.user, 'profile') else 'No profile',
+        }
     }
     return render(request, 'blog/profile_settings.html', context)
 
 
 def profile_view(request, username):
     """View to display a user's profile"""
-    from django.contrib.auth.models import User
-    user = get_object_or_404(User, username=username)
-    profile = get_object_or_404(Profile, user=user)
-    user_posts = Post.objects.filter(author=user).order_by('-created_at')[:5]  # Latest 5 posts
+    logger = logging.getLogger(__name__)
+    logger.info(f"Profile view called for username: {username}")
     
-    # Get the profile picture URL
-    profile_picture_url = None
-    if profile.profile_picture:
-        profile_picture_url = profile.profile_picture.url
-    
-    context = {
-        'profile_user': user,
-        'profile': profile,
-        'profile_picture_url': profile_picture_url,
-        'user_posts': user_posts,
-        'post_count': Post.objects.filter(author=user).count(),
-    }
-    return render(request, 'blog/profile_view.html', context)
+    try:
+        from django.contrib.auth.models import User
+        user = get_object_or_404(User, username=username)
+        profile = get_object_or_404(Profile, user=user)
+        
+        # Log profile details
+        logger.info(f"Found user: {user.username}, Profile ID: {profile.id}")
+        
+        # Get profile picture URL with error handling
+        profile_picture_url = None
+        if profile.profile_picture:
+            try:
+                profile_picture_url = profile.profile_picture.url
+                logger.info(f"Profile picture URL: {profile_picture_url}")
+            except Exception as e:
+                logger.error(f"Error getting profile picture URL: {str(e)}")
+                profile_picture_url = '/static/images/default-avatar.png'
+        else:
+            logger.info("No profile picture found, using default avatar")
+            profile_picture_url = '/static/images/default-avatar.png'
+        
+        # Get user's posts
+        user_posts = Post.objects.filter(author=user).order_by('-created_at')[:5]
+        
+        context = {
+            'profile_user': user,
+            'profile': profile,
+            'profile_picture_url': profile_picture_url,
+            'user_posts': user_posts,
+            'post_count': Post.objects.filter(author=user).count(),
+            'debug': {
+                'has_profile_picture': bool(profile.profile_picture),
+                'picture_url': profile_picture_url,
+                'storage_class': str(profile.profile_picture.storage.__class__) if profile.profile_picture else 'No picture',
+            },
+        }
+        
+        return render(request, 'blog/profile_view.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in profile_view: {str(e)}", exc_info=True)
+        raise
 
 
 def user_logout(request):
