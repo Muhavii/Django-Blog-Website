@@ -82,15 +82,15 @@ class Profile(models.Model):
         return f"{self.user.username}'s Profile"
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+        # Check if this is a new instance or if the profile picture is being updated
+        if self.pk:
+            old_instance = Profile.objects.get(pk=self.pk)
+            if old_instance.profile_picture and old_instance.profile_picture != self.profile_picture:
+                # Delete old profile picture if it's not the default
+                if 'default-avatar' not in old_instance.profile_picture.url:
+                    old_instance.profile_picture.delete(save=False)
         
-        # Resize profile picture if it exists
-        if self.profile_picture:
-            img = Image.open(self.profile_picture.path)
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
-                img.thumbnail(output_size)
-                img.save(self.profile_picture.path)
+        super().save(*args, **kwargs)
 
     def get_profile_picture_url(self):
         if self.profile_picture:

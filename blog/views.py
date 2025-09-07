@@ -178,13 +178,34 @@ def profile_settings(request):
     """View for users to edit their profile settings"""
     if request.method == 'POST':
         user_form = UserUpdateForm(request.POST, instance=request.user)
-        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        profile_form = ProfileUpdateForm(
+            request.POST, 
+            request.FILES, 
+            instance=request.user.profile
+        )
         
         if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('profile_settings')
+            try:
+                # Save user data first
+                user = user_form.save(commit=False)
+                user.save()
+                
+                # Handle profile picture separately
+                profile = profile_form.save(commit=False)
+                if 'profile_picture' in request.FILES:
+                    # Delete old profile picture if it exists
+                    if profile.profile_picture and hasattr(profile.profile_picture, 'url'):
+                        # Only delete if it's not the default image
+                        if 'default-avatar' not in profile.profile_picture.url:
+                            profile.profile_picture.delete(save=False)
+                    # New file will be automatically uploaded to Cloudinary
+                    
+                profile.save()
+                messages.success(request, 'Your profile has been updated successfully!')
+                return redirect('profile_settings')
+                
+            except Exception as e:
+                messages.error(request, f'Error updating profile: {str(e)}')
     else:
         user_form = UserUpdateForm(instance=request.user)
         profile_form = ProfileUpdateForm(instance=request.user.profile)

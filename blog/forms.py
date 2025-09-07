@@ -95,15 +95,22 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class ProfileUpdateForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['profile_picture'].required = False
+        self.fields['profile_picture'].widget.attrs.update({
+            'class': 'form-control',
+            'accept': 'image/*'  # Only accept image files
+        })
+
     class Meta:
         model = Profile
         fields = ['profile_picture', 'bio', 'location', 'birth_date', 'website', 'twitter_handle', 'github_username']
         widgets = {
-            'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
             'bio': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': 'Tell us about yourself...'
+                'placeholder': 'Tell us about yourself...',
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-control',

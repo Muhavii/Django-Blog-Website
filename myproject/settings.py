@@ -150,13 +150,22 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
+# Cloudinary configuration
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'your-cloud-name'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', 'your-api-key'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your-api-secret'),
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    'SECURE': True,  # Use HTTPS
+    'VALIDATE_URL': True,
 }
 
-cloudinary.config(**CLOUDINARY_STORAGE)
+# Initialize Cloudinary
+cloudinary.config(
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+    secure=True
+)
 
 # Use Cloudinary for media files
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
