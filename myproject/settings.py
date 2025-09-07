@@ -24,11 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-simple-key-for-production-123456789'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Temporarily enabling DEBUG for troubleshooting
-DEBUG = True
+DEBUG = False
 
-# Show detailed error pages in production for now
-DEBUG_PROPAGATE_EXCEPTIONS = True
+# Only show detailed errors to admins
+DEBUG_PROPAGATE_EXCEPTIONS = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -137,14 +136,24 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
-# The absolute path to the directory where collectstatic will collect static files for deployment.
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Extra places for collectstatic to find static files.
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+# Admin static files
+ADMIN_MEDIA_PREFIX = '/static/admin/'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# File upload permissions
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+
+# Admin site title
+ADMIN_SITE_HEADER = "Muhavi's Blog Administration"
+ADMIN_SITE_TITLE = "Muhavi's Blog Admin"
+ADMIN_INDEX_TITLE = "Welcome to Muhavi's Blog Admin"
 
 # Simplified static file serving for production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

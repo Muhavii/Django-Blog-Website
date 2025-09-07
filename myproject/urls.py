@@ -20,16 +20,34 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 
+# Import our custom admin site
+from myproject.admin_site import admin_site as custom_admin_site
+
+# Replace the default admin site with our custom one
+admin.site = custom_admin_site
+admin.sites.site = custom_admin_site
+admin.autodiscover()
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', custom_admin_site.urls),
     path('', include('blog.urls')),
+    
+    # Add a direct link to the admin site from the main site
+    path('admin/doc/', include('django.contrib.admindocs.urls')),
 ]
 
-# Serve media files - force serving in all environments
-from django.views.static import serve
-import re
-
-urlpatterns += [
-    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-]
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+else:
+    # In production, serve media files through Django if needed (better to use a CDN or web server)
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {
+            'document_root': settings.MEDIA_ROOT,
+            'show_indexes': False,
+        }),
+    ]
+    
+    # Serve static files in production using WhiteNoise
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

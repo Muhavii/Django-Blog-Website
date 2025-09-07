@@ -7,14 +7,67 @@
     {{ block.super }}
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Additional admin styles */
+        #header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+        }
+        #branding h1 a {
+            color: white !important;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        #branding h1 a:before {
+            content: '🚀';
+            font-size: 1.5em;
+        }
+        .dashboard #content {
+            padding: 20px;
+        }
+        .module {
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
 {% endblock %}
 
 {% block branding %}
 <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
-        🚀 Muhavi's Blog Admin
+        Muhavi's Blog Admin
     </a>
 </h1>
 {% endblock %}
 
+{% block usertools %}
+    {{ block.super }}
+    {% if user.is_superuser %}
+    <div class="user-tools" style="margin-right: 20px;">
+        <a href="/" target="_blank"><i class="fas fa-external-link-alt"></i> View Site</a>
+    </div>
+    {% endif %}
+{% endblock %}
+
 {% block nav-global %}{% endblock %}
+
+{% block footer %}
+    {{ block.super }}
+    <script>
+        // Add any admin-specific JavaScript here
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add active class to current model in sidebar
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('#changelist-filter a, #nav-sidebar a').forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.closest('tr, li').classList.add('active');
+                }
+            });
+        });
+    </script>
+{% endblock %}

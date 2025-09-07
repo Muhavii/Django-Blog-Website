@@ -20,6 +20,40 @@
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
+/* Image Previews */
+.image-preview {
+    margin-top: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: white;
+    display: inline-block;
+}
+
+.image-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
+    box-shadow: var(--shadow);
+}
+
+/* Form Styles */
+.field-image_preview,
+.field-profile_picture_preview {
+    margin-top: 1rem;
+}
+
+/* Responsive Tables */
+#changelist table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.change-list .results {
+    overflow-x: auto;
+}
+
 /* Global Styles */
 * {
     box-sizing: border-box;
@@ -30,6 +64,31 @@ body {
     background-color: var(--background-color) !important;
     color: var(--text-primary) !important;
     line-height: 1.6;
+}
+
+/* Card Styles */
+.dashboard #content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.module {
+    background: var(--card-background);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.module h2, .module caption, .inline-group h2 {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1rem;
+    margin: 0;
+    border-radius: 0.5rem 0.5rem 0 0;
+    font-weight: 600;
 }
 
 /* Header Styling */
@@ -198,7 +257,8 @@ input[type="email"]:focus, textarea:focus, select:focus {
 }
 
 /* Buttons */
-.default, input[type="submit"], .button, button {
+.button, input[type="submit"], input[type="button"], .submit-row input, a.button {
+    transition: all 0.2s ease-in-out;
     background: var(--primary-color) !important;
     color: white !important;
     border: none !important;
@@ -206,12 +266,11 @@ input[type="email"]:focus, textarea:focus, select:focus {
     border-radius: 0.375rem !important;
     font-weight: 500 !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
     text-decoration: none !important;
     display: inline-block !important;
 }
 
-.default:hover, input[type="submit"]:hover, .button:hover, button:hover {
+.button:hover, input[type="submit"]:hover, input[type="button"]:hover, .submit-row input:hover, a.button:hover {
     background: var(--primary-dark) !important;
     transform: translateY(-1px) !important;
     box-shadow: var(--shadow-lg) !important;
@@ -330,6 +389,16 @@ input[type="email"]:focus, textarea:focus, select:focus {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .dashboard #content {
+        padding: 10px;
+    }
+    
+    .module {
+        margin: 10px 0;
+    }
+}
+
 @media (max-width: 768px) {
     #content {
         padding: 1rem !important;
