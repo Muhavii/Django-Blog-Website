@@ -1,3 +1,8 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -122,15 +127,14 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-.dmypy.json
 dmypy.json
 
 # Pyre type checker
 .pyre/
 
 # Django specific
-media/
-staticfiles/
+/media/
+/staticfiles/
 static_root/
 
 # IDE
