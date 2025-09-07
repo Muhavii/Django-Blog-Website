@@ -36,7 +36,7 @@ def admin_stats(request):
         for comment in Comment.objects.select_related('post').order_by('-created_at')[:3]:
             recent_activity.append({
                 'icon': 'comment',
-                'message': f'New comment on "{getattr(comment.post, 'title', 'a post')}"',
+                'message': f"New comment on '{getattr(comment.post, 'title', 'a post')}'",
                 'time': comment.created_at
             })
         
