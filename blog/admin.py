@@ -1,11 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from myproject.admin_site import admin_site
+from django.urls import reverse
 from .models import Post, Comment, Like, Profile
-
-# Import the custom admin site
-from myproject.admin_site import admin_site as custom_admin_site
 
 class ImagePreviewMixin:
     def image_preview(self, obj):

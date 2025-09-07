@@ -1,13 +1,82 @@
 {% extends "admin/base.html" %}
-{% load static %}
+{% load i18n static %}
 
 {% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/base.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Custom admin styles */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary: #6b7280;
+            --success: #10b981;
+            --info: #3b82f6;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f9fafb;
+            --dark: #111827;
+        }
+        
+        /* Header styles */
+        #header {
+            background: var(--primary) !important;
+            color: white;
+        }
+        
+        #branding h1 a:link, #branding h1 a:visited {
+            color: white !important;
+        }
+        
+        .module h2, .module caption, .inline-group h2 {
+            background: var(--primary) !important;
+        }
+        
+        /* Button styles */
+        .button, input[type="submit"], input[type="button"], .submit-row input, a.button {
+            background: var(--primary);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            color: white !important;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 1.5;
+            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        
+        .button:hover, input[type="submit"]:hover, input[type="button"]:hover, 
+        .submit-row input:hover, a.button:hover {
+            background: var(--primary-hover);
+        }
+        
+        /* Form styles */
+        input[type="text"], input[type="password"], input[type="email"], 
+        input[type="url"], input[type="number"], textarea, select, .vTextField {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 8px 10px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block extrahead %}
     {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Additional admin styles */

@@ -18,18 +18,14 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 from django.views.static import serve
 
-# Import our custom admin site
-from myproject.admin_site import admin_site as custom_admin_site
-
-# Replace the default admin site with our custom one
-admin.site = custom_admin_site
-admin.sites.site = custom_admin_site
-admin.autodiscover()
+from django.contrib import admin
 
 urlpatterns = [
-    path('admin/', custom_admin_site.urls),
+    # Use the admin site with custom templates
+    path('admin/', admin.site.urls),
     path('', include('blog.urls')),
     
     # Add a direct link to the admin site from the main site
@@ -41,7 +37,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 else:
-    # In production, serve media files through Django if needed (better to use a CDN or web server)
+        # In production, serve media files through Django if needed (better to use a CDN or web server)
     urlpatterns += [
         re_path(r'^media/(?P<path>.*)$', serve, {
             'document_root': settings.MEDIA_ROOT,

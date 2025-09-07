@@ -1,0 +1,55 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/admin-custom.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <i class="fas fa-blog"></i> {{ site_header|default:_('Django administration') }}
+    </a>
+</h1>
+{% endblock %}
+
+{% block userlinks %}
+    {% if site_url %}
+        <a href="{{ site_url }}" class="view-site"><i class="fas fa-external-link-alt"></i> View site</a>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
+
+{% block nav-global %}
+    {{ block.super }}
+    <style>
+        /* Quick action buttons */
+        .quick-actions {
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .quick-actions a {
+            display: inline-block;
+            margin-right: 15px;
+            color: #4a5568;
+            text-decoration: none;
+        }
+        .quick-actions a:hover {
+            color: #2d3748;
+        }
+        .quick-actions i {
+            margin-right: 5px;
+            color: #4a5568;
+        }
+    </style>
+    <div class="quick-actions">
+        <a href="{% url 'admin:blog_post_add' %}"><i class="fas fa-plus"></i> New Post</a>
+        <a href="{% url 'admin:auth_user_add' %}"><i class="fas fa-user-plus"></i> Add User</a>
+        <a href="{% url 'admin:blog_comment_changelist' %}">
+            <i class="fas fa-comment-alt"></i> Review Comments
+        </a>
+    </div>
+{% endblock %}
