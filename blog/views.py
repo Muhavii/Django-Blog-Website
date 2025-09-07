@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db import IntegrityError
-from .models import Post, Comment, Like
-from .forms import PostForm, CommentForm, UserRegistrationForm
+from .models import Post, Comment, Like, Profile
+from .forms import PostForm, CommentForm, UserRegistrationForm, UserUpdateForm, ProfileUpdateForm
 
 
 def home(request):
@@ -165,13 +165,51 @@ def like_post(request, pk):
         # Return JSON response for AJAX
         return JsonResponse({
             'success': True,
-            'action': action,
             'like_count': post.get_like_count(),
             'dislike_count': post.get_dislike_count(),
-            'user_vote': post.get_user_vote(request.user)
+            'user_vote': like_obj.is_like if like_obj else None
         })
     
     return JsonResponse({'success': False})
+
+
+@login_required
+def profile_settings(request):
+    """View for users to edit their profile settings"""
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('profile_settings')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=request.user.profile)
+    
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form
+    }
+    return render(request, 'blog/profile_settings.html', context)
+
+
+def profile_view(request, username):
+    """View to display a user's profile"""
+    from django.contrib.auth.models import User
+    user = get_object_or_404(User, username=username)
+    profile = get_object_or_404(Profile, user=user)
+    user_posts = Post.objects.filter(author=user).order_by('-created_at')[:5]  # Latest 5 posts
+    
+    context = {
+        'profile_user': user,
+        'profile': profile,
+        'user_posts': user_posts,
+        'post_count': Post.objects.filter(author=user).count(),
+    }
+    return render(request, 'blog/profile_view.html', context)
 
 
 def user_logout(request):

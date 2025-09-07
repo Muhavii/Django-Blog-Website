@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }}'s Profile - Muhavi's Blog{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <!-- Profile Picture -->
+                    <div class="mb-3">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" 
+                                 alt="{{ profile_user.username }}'s Profile Picture" 
+                                 class="rounded-circle profile-pic-large blog-image">
+                        {% else %}
+                            <div class="default-avatar-large">
+                                <i class="fas fa-user fa-4x text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- User Info -->
+                    <h4 class="mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+                    <p class="text-muted mb-3">@{{ profile_user.username }}</p>
+                    
+                    {% if profile.bio %}
+                    <p class="mb-3">{{ profile.bio }}</p>
+                    {% endif %}
+
+                    <!-- Stats -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <strong>{{ post_count }}</strong>
+                            <div class="text-muted small">Posts</div>
+                        </div>
+                        <div class="col-4">
+                            <strong>{{ profile_user.date_joined|date:"M Y" }}</strong>
+                            <div class="text-muted small">Joined</div>
+                        </div>
+                        <div class="col-4">
+                            {% if profile.location %}
+                            <strong><i class="fas fa-map-marker-alt"></i></strong>
+                            <div class="text-muted small">{{ profile.location }}</div>
+                            {% else %}
+                            <strong>-</strong>
+                            <div class="text-muted small">Location</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Social Links -->
+                    {% if profile.website or profile.twitter_handle or profile.github_username %}
+                    <div class="mb-3">
+                        {% if profile.website %}
+                        <a href="{{ profile.website }}" target="_blank" class="btn btn-outline-primary btn-sm me-2">
+                            <i class="fas fa-globe"></i> Website
+                        </a>
+                        {% endif %}
+                        {% if profile.twitter_handle %}
+                        <a href="https://twitter.com/{{ profile.twitter_handle|cut:'@' }}" target="_blank" class="btn btn-outline-info btn-sm me-2">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                        {% endif %}
+                        {% if profile.github_username %}
+                        <a href="https://github.com/{{ profile.github_username }}" target="_blank" class="btn btn-outline-dark btn-sm">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Edit Profile Button (only for own profile) -->
+                    {% if user == profile_user %}
+                    <a href="{% url 'profile_settings' %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- User's Posts -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3>Recent Posts by {{ profile_user.username }}</h3>
+                {% if user == profile_user %}
+                <a href="{% url 'create_post' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> New Post
+                </a>
+                {% endif %}
+            </div>
+
+            {% if user_posts %}
+                {% for post in user_posts %}
+                <div class="card mb-4">
+                    {% if post.image %}
+                    <img src="{{ post.image.url }}" class="card-img-top blog-image" alt="{{ post.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'post_detail' post.pk %}" class="text-decoration-none">
+                                {{ post.title }}
+                            </a>
+                        </h5>
+                        <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ post.created_at|date:"M d, Y" }} |
+                                <i class="fas fa-eye"></i> {{ post.view_count }} views
+                            </small>
+                            <div>
+                                <span class="badge bg-success me-1">
+                                    <i class="fas fa-thumbs-up"></i> {{ post.get_like_count }}
+                                </span>
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-thumbs-down"></i> {{ post.get_dislike_count }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="{% url 'post_detail' post.pk %}" class="btn btn-primary btn-sm">
+                                Read More <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if post_count > 5 %}
+                <div class="text-center">
+                    <p class="text-muted">Showing latest 5 posts out of {{ post_count }} total posts.</p>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-blog fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No posts yet</h4>
+                    {% if user == profile_user %}
+                    <p class="text-muted">Start sharing your thoughts with the world!</p>
+                    <a href="{% url 'create_post' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create Your First Post
+                    </a>
+                    {% else %}
+                    <p class="text-muted">{{ profile_user.username }} hasn't posted anything yet.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-pic-large {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 4px solid #dee2e6;
+}
+
+.default-avatar-large {
+    width: 150px;
+    height: 150px;
+    background-color: #f8f9fa;
+    border: 4px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile Settings - Muhavi's Blog{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0"><i class="fas fa-user-cog"></i> Profile Settings</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Current Profile Picture -->
+                        <div class="text-center mb-4">
+                            <div class="profile-picture-container">
+                                {% if user.profile.profile_picture %}
+                                    <img src="{{ user.profile.profile_picture.url }}" 
+                                         alt="Profile Picture" 
+                                         class="rounded-circle profile-pic-large">
+                                {% else %}
+                                    <div class="default-avatar-large">
+                                        <i class="fas fa-user fa-4x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Account Information -->
+                        <h5 class="mb-3"><i class="fas fa-user"></i> Account Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.username.id_for_label }}" class="form-label">Username</label>
+                                {{ user_form.username }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ user_form.email }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ user_form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ user_form.last_name }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Profile Information -->
+                        <h5 class="mb-3"><i class="fas fa-id-card"></i> Profile Information</h5>
+                        <div class="mb-3">
+                            <label for="{{ profile_form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                            {{ profile_form.profile_picture }}
+                            <div class="form-text">Upload a profile picture (recommended: 300x300px)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ profile_form.bio.id_for_label }}" class="form-label">Bio</label>
+                            {{ profile_form.bio }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.location.id_for_label }}" class="form-label">Location</label>
+                                {{ profile_form.location }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.birth_date.id_for_label }}" class="form-label">Birth Date</label>
+                                {{ profile_form.birth_date }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Social Links -->
+                        <h5 class="mb-3"><i class="fas fa-link"></i> Social Links</h5>
+                        <div class="mb-3">
+                            <label for="{{ profile_form.website.id_for_label }}" class="form-label">Website</label>
+                            {{ profile_form.website }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.twitter_handle.id_for_label }}" class="form-label">Twitter Handle</label>
+                                {{ profile_form.twitter_handle }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.github_username.id_for_label }}" class="form-label">GitHub Username</label>
+                                {{ profile_form.github_username }}
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'profile_view' user.username %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-eye"></i> View Profile
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-pic-large {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 4px solid #dee2e6;
+}
+
+.default-avatar-large {
+    width: 120px;
+    height: 120px;
+    background-color: #f8f9fa;
+    border: 4px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.profile-picture-container {
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}

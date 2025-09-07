@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 
 class Post(models.Model):
@@ -63,3 +64,35 @@ class Like(models.Model):
     def __str__(self):
         vote_type = "liked" if self.is_like else "disliked"
         return f'{self.user.username} {vote_type} {self.post.title}'
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    bio = models.TextField(max_length=500, blank=True)
+    location = models.CharField(max_length=100, blank=True)
+    birth_date = models.DateField(blank=True, null=True)
+    website = models.URLField(blank=True)
+    twitter_handle = models.CharField(max_length=50, blank=True)
+    github_username = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        # Resize profile picture if it exists
+        if self.profile_picture:
+            img = Image.open(self.profile_picture.path)
+            if img.height > 300 or img.width > 300:
+                output_size = (300, 300)
+                img.thumbnail(output_size)
+                img.save(self.profile_picture.path)
+
+    def get_profile_picture_url(self):
+        if self.profile_picture:
+            return self.profile_picture.url
+        return '/static/images/default-avatar.png'

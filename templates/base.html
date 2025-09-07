@@ -152,15 +152,28 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i> {{ user.username }}
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            {% if user.profile.profile_picture %}
+                                <img src="{{ user.profile.profile_picture.url }}" alt="Profile" class="rounded-circle me-1" style="width: 25px; height: 25px; object-fit: cover;">
+                            {% else %}
+                                <i class="fas fa-user"></i>
+                            {% endif %}
+                            {{ user.username }}
                         </a>
                         <ul class="dropdown-menu">
-                            {% if user.is_superuser %}
-                            <li><a class="dropdown-item" href="/admin/"><i class="fas fa-cog"></i> Admin Panel</a></li>
+                            <li><a class="dropdown-item" href="{% url 'profile_view' user.username %}">
+                                <i class="fas fa-user"></i> My Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'profile_settings' %}">
+                                <i class="fas fa-cog"></i> Settings
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'create_post' %}">
+                                <i class="fas fa-plus"></i> Create Post
+                            </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            {% endif %}
-                            <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
                         </ul>
                     </li>
                     {% else %}
