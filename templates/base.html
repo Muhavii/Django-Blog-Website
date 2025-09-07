@@ -40,34 +40,88 @@
         }
         .blog-image {
             width: 100%;
-            height: 300px;
+            max-height: 400px;
             object-fit: cover;
             border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .blog-image:hover {
+            transform: scale(1.02);
         }
         .blog-image-detail {
             width: 100%;
-            height: 400px;
+            max-height: 500px;
             object-fit: cover;
             border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
         }
+        .blog-image-detail:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Image Modal Styles */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+        }
+        .modal-content-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+        }
+        .close-modal:hover {
+            color: #ccc;
+        }
+        
         @media (max-width: 768px) {
             .blog-image {
-                height: 250px;
+                max-height: 250px;
             }
             .blog-image-detail {
-                height: 300px;
+                max-height: 300px;
+            }
+            .modal-content-img {
+                max-width: 98%;
+                max-height: 98%;
+            }
+            .close-modal {
+                top: 10px;
+                right: 20px;
+                font-size: 30px;
             }
         }
         @media (min-width: 992px) {
             .blog-image {
-                width: 300px;
-                height: 300px;
+                max-width: 600px;
                 margin: 0 auto;
                 display: block;
             }
             .blog-image-detail {
-                width: 400px;
-                height: 400px;
+                max-width: 700px;
                 margin: 0 auto;
                 display: block;
             }
@@ -157,7 +211,56 @@
         </div>
     </footer>
 
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content-img" id="modalImage">
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Image Modal Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const closeBtn = document.querySelector('.close-modal');
+            
+            // Add click event to all blog images
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('blog-image') || e.target.classList.contains('blog-image-detail')) {
+                    modal.style.display = 'block';
+                    modalImg.src = e.target.src;
+                    modalImg.alt = e.target.alt;
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+                }
+            });
+            
+            // Close modal when clicking X
+            closeBtn.addEventListener('click', function() {
+                closeModal();
+            });
+            
+            // Close modal when clicking outside image
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.style.display === 'block') {
+                    closeModal();
+                }
+            });
+            
+            function closeModal() {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto'; // Restore scrolling
+            }
+        });
+    </script>
     
     <script>
         // Fun facts array
