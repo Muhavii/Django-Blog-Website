@@ -9,8 +9,6 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-from dotenv import load_dotenv
-load_dotenv()
 from pathlib import Path
 from decouple import config
 import os
@@ -26,7 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-simple-key-for-production-123456789'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Temporarily enabling DEBUG for troubleshooting
 DEBUG = True
+
+# Show detailed error pages in production for now
+DEBUG_PROPAGATE_EXCEPTIONS = True
 
 ALLOWED_HOSTS = ['*']
 
