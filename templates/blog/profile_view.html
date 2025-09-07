@@ -11,10 +11,11 @@
                 <div class="card-body text-center">
                     <!-- Profile Picture -->
                     <div class="mb-3">
-                        {% if profile.profile_picture %}
-                            <img src="{{ profile.profile_picture.url }}" 
+                        {% if profile_picture_url %}
+                            <img src="{{ profile_picture_url }}" 
                                  alt="{{ profile_user.username }}'s Profile Picture" 
-                                 class="rounded-circle profile-pic-large blog-image">
+                                 class="rounded-circle profile-pic-large blog-image"
+                                 onerror="this.onerror=null; this.src='/static/images/default-avatar.png';">
                         {% else %}
                             <div class="default-avatar-large">
                                 <i class="fas fa-user fa-4x text-muted"></i>

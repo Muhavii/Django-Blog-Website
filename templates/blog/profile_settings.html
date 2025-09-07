@@ -17,10 +17,11 @@
                         <!-- Current Profile Picture -->
                         <div class="text-center mb-4">
                             <div class="profile-picture-container">
-                                {% if user.profile.profile_picture %}
-                                    <img src="{{ user.profile.profile_picture.url }}" 
+                                {% if profile_form.instance.profile_picture %}
+                                    <img src="{{ profile_form.instance.profile_picture.url }}" 
                                          alt="Profile Picture" 
-                                         class="rounded-circle profile-pic-large">
+                                         class="rounded-circle profile-pic-large"
+                                         onerror="this.onerror=null; this.src='/static/images/default-avatar.png';">
                                 {% else %}
                                     <div class="default-avatar-large">
                                         <i class="fas fa-user fa-4x text-muted"></i>

@@ -224,9 +224,15 @@ def profile_view(request, username):
     profile = get_object_or_404(Profile, user=user)
     user_posts = Post.objects.filter(author=user).order_by('-created_at')[:5]  # Latest 5 posts
     
+    # Get the profile picture URL
+    profile_picture_url = None
+    if profile.profile_picture:
+        profile_picture_url = profile.profile_picture.url
+    
     context = {
         'profile_user': user,
         'profile': profile,
+        'profile_picture_url': profile_picture_url,
         'user_posts': user_posts,
         'post_count': Post.objects.filter(author=user).count(),
     }
