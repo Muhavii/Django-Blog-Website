@@ -14,7 +14,67 @@
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        {{ form.title|as_crispy_field }}
+                        {{ form.content|as_crispy_field }}
+                        
+                        <div class="mb-3">
+                            {{ form.image|as_crispy_field }}
+                            {% if post.image %}
+                                <div class="mt-2">
+                                    <img src="{{ post.image.url }}" alt="Current post image" class="img-thumbnail" style="max-height: 200px;">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="image-clear" id="image-clear_id">
+                                        <label class="form-check-label" for="image-clear_id">Clear current image</label>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Upload a new image (JPG, PNG, GIF).</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.video|as_crispy_field }}
+                            {% if post.video %}
+                                <div class="mt-2">
+                                    <video controls class="img-fluid rounded" style="max-height: 300px;">
+                                        <source src="{{ post.video.url }}" type="video/{{ post.video.url|slice:'-3:' }}">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="video-clear" id="video-clear_id">
+                                        <label class="form-check-label" for="video-clear_id">Remove current video</label>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div id="video-preview" class="mt-2 d-none">
+                                <video id="video-player" controls class="img-fluid rounded" style="max-height: 300px;">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            <small class="form-text text-muted">Upload a new video (MP4, WebM, OGG, max 50MB).</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.audio|as_crispy_field }}
+                            {% if post.audio %}
+                                <div class="mt-2">
+                                    <audio controls class="w-100">
+                                        <source src="{{ post.audio.url }}" type="audio/{{ post.audio.url|slice:'-3:' }}">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="audio-clear" id="audio-clear_id">
+                                        <label class="form-check-label" for="audio-clear_id">Remove current audio</label>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div id="audio-preview" class="mt-2 d-none">
+                                <audio id="audio-player" controls class="w-100">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                            <small class="form-text text-muted">Upload a new audio file (MP3, WAV, OGG, max 50MB).</small>
+                        </div>
+                        
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'post_detail' post.pk %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Cancel
@@ -24,6 +84,42 @@
                             </button>
                         </div>
                     </form>
+
+                    <script>
+                        // Video preview for new upload
+                        document.getElementById('id_video').addEventListener('change', function(e) {
+                            const file = this.files[0];
+                            if (file) {
+                                const videoPlayer = document.getElementById('video-player');
+                                const videoPreview = document.getElementById('video-preview');
+                                videoPlayer.src = URL.createObjectURL(file);
+                                videoPreview.classList.remove('d-none');
+                                
+                                // Hide the current video if replacing
+                                const currentVideo = this.closest('.mb-3').querySelector('video[src*="."]');
+                                if (currentVideo) {
+                                    currentVideo.closest('div').classList.add('d-none');
+                                }
+                            }
+                        });
+
+                        // Audio preview for new upload
+                        document.getElementById('id_audio').addEventListener('change', function(e) {
+                            const file = this.files[0];
+                            if (file) {
+                                const audioPlayer = document.getElementById('audio-player');
+                                const audioPreview = document.getElementById('audio-preview');
+                                audioPlayer.src = URL.createObjectURL(file);
+                                audioPreview.classList.remove('d-none');
+                                
+                                // Hide the current audio if replacing
+                                const currentAudio = this.closest('.mb-3').querySelector('audio[src*="."]');
+                                if (currentAudio) {
+                                    currentAudio.closest('div').classList.add('d-none');
+                                }
+                            }
+                        });
+                    </script>
                 </div>
             </div>
         </div>

@@ -4,48 +4,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Muhavi's Blog{% endblock %}</title>
+    <meta name="description" content="BlogWithMuhavi - A platform for sharing thoughts, ideas, and stories with the world">
+    <meta name="keywords" content="blog, writing, articles, thoughts, ideas, muhavi">
+    <meta name="author" content="Muhavi">
+    
+    <title>{% block title %}BlogWithMuhavi{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/static/images/FPS.ico" type="image/x-icon">
+    
+    <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    
+    <!-- Additional Head Content -->
+    {% block extra_head %}{% endblock %}
+    
     <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #6b7280;
+            --light: #f9fafb;
+            --dark: #1f2937;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
         .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
             color: white;
-            padding: 80px 0;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
         }
-        .card {
-            transition: transform 0.3s ease;
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+        
+        .navbar {
+            background-color: white !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            color: var(--dark) !important;
+            margin: 0 10px;
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
             border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-        }
-        .footer {
-            background-color: #343a40;
-            color: white;
-            padding: 40px 0;
-            margin-top: 50px;
-        }
-        .blog-image {
-            width: 100%;
-            max-height: 400px;
+        
+        .card-img-top {
+            height: 200px;
             object-fit: cover;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
+        }
+        
+        .about-section {
+            padding: 100px 0;
+            background-color: #f8fafc;
+        }
+        
+        .section-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 50px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            bottom: -10px;
+            left: 0;
+            border-radius: 3px;
+        }
+        
+        .footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 60px 0 20px;
+        }
+        
+        .footer h5 {
+            font-weight: 600;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer h5::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 2px;
+            background: var(--primary);
+            bottom: 0;
+            left: 0;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: #d1d5db;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            margin-top: 40px;
+            font-size: 0.9rem;
+            color: #9ca3af;
         }
         .blog-image:hover {
             transform: scale(1.02);
@@ -131,83 +307,63 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-blog"></i> Muhavi's Blog
+                <i class="fas fa-pen-nib me-2"></i>BlogWithMuhavi
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                            <i class="fas fa-home me-1"></i> Home
-                        </a>
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}#posts">Posts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {% if '/create/' in request.path %}active{% endif %}" href="{% url 'create_post' %}">
-                            <i class="fas fa-plus-circle me-1"></i> Create Post
-                        </a>
+                        <a class="nav-link" href="{% url 'create_post' %}">New Post</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'profile/' in request.path and user.username in request.path %}active{% endif %}" 
-                           href="{% url 'profile_view' user.username %}">
-                            <i class="fas fa-user me-1"></i> My Profile
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-                
-                <!-- Search Form -->
-                <form class="d-flex me-2" action="{% url 'user_search' %}" method="get">
-                    <div class="input-group">
-                        <input type="search" 
-                               name="query" 
-                               class="form-control form-control-sm" 
-                               placeholder="Search users..."
-                               aria-label="Search users"
-                               value="{{ request.GET.query|default:'' }}">
-                        <button class="btn btn-outline-light btn-sm" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             {% if user.profile.profile_picture %}
-                                <img src="{{ user.profile.profile_picture.url }}" alt="Profile" class="rounded-circle me-1" style="width: 25px; height: 25px; object-fit: cover;">
+                                <div class="profile-avatar">
+                                    {% if user.profile.profile_picture %}
+                                        <img src="{{ user.profile.profile_picture.url }}" 
+                                             class="rounded-circle me-2" 
+                                             width="24" 
+                                             height="24"
+                                             style="object-fit: cover;"
+                                             alt="{{ user.username }}"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+                                    {% endif %}
+                                    <i class="fas fa-user-circle me-1" {% if user.profile.profile_picture %}style="display: none;"{% endif %}></i>
+                                </div>
                             {% else %}
-                                <i class="fas fa-user"></i>
+                                <i class="fas fa-user-circle me-1"></i>
                             {% endif %}
-                            {{ user.username }}
+                            <span>{{ user.username }}</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'profile_view' user.username %}">
-                                <i class="fas fa-user"></i> My Profile
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'profile_settings' %}">
-                                <i class="fas fa-cog"></i> Settings
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'create_post' %}">
-                                <i class="fas fa-plus"></i> Create Post
-                            </a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'profile_view' user.username %}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'password_change' %}">Change Password</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </a></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Logout</a></li>
                         </ul>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+                        <a class="nav-link me-2" href="{% url 'login' %}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a>
+                        <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Get Started</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -227,24 +383,154 @@
     </div>
     {% endif %}
 
+    <!-- Hero Section -->
+<header class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Welcome</h1>
+                <p class="lead mb-4">A global platform where diverse voices meet, share, and inspire across all fields and cultures.</p>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                     alt="Global Community" 
+                     class="img-fluid rounded-3 shadow-lg">
+            </div>
+        </div>
+    </div>
+</header>
     <!-- Main Content -->
     <main>
         {% block content %}
         {% endblock %}
     </main>
 
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <img src="https://images.unsplash.com/photo-1497215842964-222b430dc094?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
+                         alt="About BlogWithMuhavi" 
+                         class="img-fluid rounded-3 shadow">
+                </div>
+                <div class="col-lg-6 ps-lg-5">
+                    <h2 class="section-title">About BlogWithMuhavi</h2>
+                    <p class="lead">A global platform where ideas meet inspiration.</p>
+                    <p>Welcome to BlogWithMuhavi, a vibrant community where people from all walks of life come together to share their stories, insights, and expertise. Whether you're a writer, thinker, creator, or curious explorer, this is your space to connect with a worldwide audience.</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary">
+                                    <i class="fas fa-globe fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="h6 mb-1">Global Community</h5>
+                                    <p class="small text-muted mb-0">Connect with people from around the world</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary">
+                                    <i class="fas fa-lightbulb fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="h6 mb-1">Diverse Topics</h5>
+                                    <p class="small text-muted mb-0">Explore a wide range of subjects and interests</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary">
+                                    <i class="fas fa-comments fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="h6 mb-1">Engaging Discussions</h5>
+                                    <p class="small text-muted mb-0">Share your thoughts and join conversations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex">
+                                <div class="me-3 text-primary">
+                                    <i class="fas fa-users fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5 class="h6 mb-1">Supportive Network</h5>
+                                    <p class="small text-muted mb-0">Find your tribe and grow together</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-primary me-2">Join Now</a>
+                        {% endif %}
+                        <a href="#" class="btn btn-outline-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <div class="row">
-                <div class="col-12 text-center mb-3">
-                    <div class="fun-fact-container">
-                        <h6><i class="fas fa-lightbulb text-warning"></i> Fun Fact</h6>
-                        <p id="random-fact" class="mb-0 fst-italic"></p>
+            <div class="row g-4">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <h5>BlogWithMuhavi</h5>
+                    <p class="text-muted mt-3">A global platform where diverse voices meet, share, and inspire across all fields and cultures.</p>
+                    <div class="social-links mt-4">
+                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="me-2"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-2 mb-4 mb-md-0">
+                    <h5>Quick Links</h5>
+                    <ul class="footer-links mt-3">
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#">Trending</a></li>
+                        <li><a href="#">Categories</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 col-lg-3 mb-4 mb-md-0">
+                    <h5>Categories</h5>
+                    <ul class="footer-links mt-3">
+                        <li><a href="#">Technology</a></li>
+                        <li><a href="#">Lifestyle</a></li>
+                        <li><a href="#">Travel</a></li>
+                        <li><a href="#">Food</a></li>
+                        <li><a href="#">Business</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <h5>Newsletter</h5>
+                    <p class="text-muted mt-3">Subscribe to get the latest posts and news.</p>
+                    <form class="mt-3">
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control" placeholder="Your email" aria-label="Your email" aria-describedby="button-addon2">
+                            <button class="btn btn-primary" type="button" id="button-addon2">Subscribe</button>
+                        </div>
+                    </form>
+                    <div class="fun-fact-container mt-4">
+                        <p class="small mb-1"><i class="fas fa-lightbulb text-warning me-2"></i>Did you know?</p>
+                        <p id="random-fact" class="small mb-0 fst-italic"></p>
                     </div>
                 </div>
                 <div class="col-12 text-center">
-                    <p class="mb-0">&copy; 2025 Muhavi's Blog. All rights reserved.</p>
+                    <div class="copyright">
+                        <p class="mb-0">&copy; 2025 BlogWithMuhavi. All rights reserved.</p>
+                        <p class="mb-0 mt-2 small">Made with <i class="fas fa-heart text-danger"></i> for the global community</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -256,55 +542,88 @@
         <img class="modal-content-img" id="modalImage">
     </div>
 
+    <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/like.js' %}"></script>
-    {% block extra_js %}
-    {% endblock %}
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     
+    <!-- Custom JavaScript -->
+    <script src="{% static 'js/like.js' %}"></script>
+    
+    <!-- Block for additional JavaScript -->
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Initialize AOS and other JavaScript -->
     <script>
-        // Image Modal Functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            const closeBtn = document.querySelector('.close-modal');
-            
-            // Add click event to all blog images
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('blog-image') || e.target.classList.contains('blog-image-detail')) {
-                    modal.style.display = 'block';
-                    modalImg.src = e.target.src;
-                    modalImg.alt = e.target.alt;
-                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80, // Offset for fixed navbar
+                        behavior: 'smooth'
+                    });
                 }
             });
-            
-            // Close modal when clicking X
-            closeBtn.addEventListener('click', function() {
-                closeModal();
-            });
-            
-            // Close modal when clicking outside image
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-            
-            // Close modal with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.style.display === 'block') {
-                    closeModal();
-                }
-            });
-            
-            function closeModal() {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto'; // Restore scrolling
+        });
+
+        // Image modal functionality
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const closeBtn = document.querySelector('.close-modal');
+
+        // Open modal when clicking on blog images
+        document.querySelectorAll('.blog-image, .blog-image-detail').forEach(img => {
+            img.onclick = function() {
+                modal.style.display = 'flex';
+                modalImg.src = this.src;
+                modalImg.alt = this.alt || 'Enlarged image';
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.paddingRight = window.innerWidth - document.documentElement.clientWidth + 'px';
             }
         });
-    </script>
-    
-    <script>
+
+        // Close modal when clicking the close button
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.paddingRight = '0';
+        }
+
+        // Close modal when clicking outside the image
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.documentElement.style.paddingRight = '0';
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.documentElement.style.paddingRight = '0';
+            }
+        });
+
+        // Add animation to navbar on scroll
+        const navbar = document.querySelector('.navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow-sm');
+                navbar.style.padding = '10px 0';
+            } else {
+                navbar.classList.remove('shadow-sm');
+                navbar.style.padding = '15px 0';
+            }
+        });
+
         // Fun facts array
         const funFacts = [
             "Honey never spoils! Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly edible.",

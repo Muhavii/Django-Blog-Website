@@ -3,9 +3,9 @@ from django.contrib.admin import AdminSite
 from django.utils.translation import gettext_lazy as _
 
 class CustomAdminSite(AdminSite):
-    site_header = _('Muhavi\'s Blog Administration')
-    site_title = _('Muhavi\'s Blog Admin')
-    index_title = _('Welcome to Muhavi\'s Blog Admin')
+    site_header = _('BlogWithMuhavi Administration')
+    site_title = _('BlogWithMuhavi Admin')
+    index_title = _('Welcome to BlogWithMuhavi Admin')
     
     def each_context(self, request):
         context = super().each_context(request)

@@ -8,11 +8,39 @@
         <div class="col-lg-8">
             <!-- Post Content -->
             <article class="card">
-                {% if post.image %}
-                <img src="{{ post.image.url }}" class="card-img-top blog-image-detail" alt="{{ post.title }}">
+                {% if post.video %}
+                    <div class="video-container">
+                        <video controls class="card-img-top" style="max-height: 70vh; width: 100%; object-fit: contain;">
+                            <source src="{{ post.video.url }}" type="video/{{ post.video.url|slice:'-3:' }}">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                {% elif post.image %}
+                    <img src="{{ post.image.url }}" class="card-img-top blog-image-detail" alt="{{ post.title }}">
                 {% endif %}
+                
+                {% if post.audio %}
+                    <div class="p-3 bg-light">
+                        <h5><i class="fas fa-music me-2"></i>Audio Content</h5>
+                        <audio controls class="w-100">
+                            <source src="{{ post.audio.url }}" type="audio/{{ post.audio.url|slice:'-3:' }}">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                {% endif %}
+                
                 <div class="card-body">
                     <h1 class="card-title">{{ post.title }}</h1>
+                    
+                    <!-- Media type indicator -->
+                    {% if post.video %}
+                        <span class="badge bg-primary mb-2"><i class="fas fa-video me-1"></i> Video Post</span>
+                    {% elif post.audio %}
+                        <span class="badge bg-info text-dark mb-2"><i class="fas fa-music me-1"></i> Audio Post</span>
+                    {% elif post.image %}
+                        <span class="badge bg-secondary mb-2"><i class="fas fa-image me-1"></i> Image Post</span>
+                    {% endif %}
+                    
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <small class="text-muted">

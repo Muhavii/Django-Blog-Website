@@ -28,6 +28,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('blog.urls')),
     
+    # Include authentication URLs (login, logout, password change, etc.)
+    path('accounts/', include('django.contrib.auth.urls')),
+    
     # Add a direct link to the admin site from the main site
     path('admin/doc/', include('django.contrib.admindocs.urls')),
 ]
@@ -47,3 +50,7 @@ else:
     
     # Serve static files in production using WhiteNoise
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Error Handlers
+handler404 = 'blog.views.handler404'
+handler500 = 'blog.views.handler500'

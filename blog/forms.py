@@ -21,22 +21,19 @@ class UserSearchForm(forms.Form):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'image']
+        fields = ['title', 'content', 'image', 'video', 'audio']
         widgets = {
-            'title': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter post title'
-            }),
-            'content': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 10,
-                'placeholder': 'Write your post content here...'
-            }),
-            'image': forms.FileInput(attrs={
-                'class': 'form-control'
-            })
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'video': forms.ClearableFileInput(attrs={'class': 'form-control-file', 'accept': 'video/*'}),
+            'audio': forms.ClearableFileInput(attrs={'class': 'form-control-file', 'accept': 'audio/*'}),
         }
-
+        help_texts = {
+            'image': 'Upload a featured image for your post (JPG, PNG, GIF)',
+            'video': 'Upload a video file (MP4, WebM, OGG, max 50MB)',
+            'audio': 'Upload an audio file (MP3, WAV, OGG, max 50MB)',
+        }
 
 class CommentForm(forms.ModelForm):
     class Meta:

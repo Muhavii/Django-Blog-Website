@@ -14,7 +14,34 @@
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        {{ form.title|as_crispy_field }}
+                        {{ form.content|as_crispy_field }}
+                        
+                        <div class="mb-3">
+                            {{ form.image|as_crispy_field }}
+                            <small class="form-text text-muted">Upload a featured image for your post (JPG, PNG, GIF).</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.video|as_crispy_field }}
+                            <small class="form-text text-muted">Upload a video file (MP4, WebM, OGG, max 50MB).</small>
+                            <div id="video-preview" class="mt-2 d-none">
+                                <video id="video-player" controls class="img-fluid rounded" style="max-height: 300px;">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.audio|as_crispy_field }}
+                            <small class="form-text text-muted">Upload an audio file (MP3, WAV, OGG, max 50MB).</small>
+                            <div id="audio-preview" class="mt-2 d-none">
+                                <audio id="audio-player" controls class="w-100">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                        </div>
+                        
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'home' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Cancel
@@ -24,6 +51,30 @@
                             </button>
                         </div>
                     </form>
+
+                    <script>
+                        // Video preview
+                        document.getElementById('id_video').addEventListener('change', function(e) {
+                            const file = this.files[0];
+                            if (file) {
+                                const videoPlayer = document.getElementById('video-player');
+                                const videoPreview = document.getElementById('video-preview');
+                                videoPlayer.src = URL.createObjectURL(file);
+                                videoPreview.classList.remove('d-none');
+                            }
+                        });
+
+                        // Audio preview
+                        document.getElementById('id_audio').addEventListener('change', function(e) {
+                            const file = this.files[0];
+                            if (file) {
+                                const audioPlayer = document.getElementById('audio-player');
+                                const audioPreview = document.getElementById('audio-preview');
+                                audioPlayer.src = URL.createObjectURL(file);
+                                audioPreview.classList.remove('d-none');
+                            }
+                        });
+                    </script>
                 </div>
             </div>
         </div>

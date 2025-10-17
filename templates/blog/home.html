@@ -1,154 +1,232 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Home - Muhavi's Blog{% endblock %}
+{% block title %}Home - BlogWithMuhavi{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="hero-section">
-    <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-4">Welcome to my blog</h1>
-        <p class="lead mb-4">Share your thoughts, ideas, and stories with the world</p>
-        {% if user.is_authenticated %}
-        <a href="{% url 'create_post' %}" class="btn btn-light btn-lg">
-            <i class="fas fa-plus"></i> Create New Post
-        </a>
-        {% else %}
-        <a href="{% url 'login' %}" class="btn btn-light btn-lg me-2">
-            <i class="fas fa-sign-in-alt"></i> Login
-        </a>
-        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg">
-            <i class="fas fa-user-plus"></i> Register
-        </a>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Posts Section -->
-<div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8">
-            <h2 class="mb-4">Latest Posts</h2>
+<!-- Welcome Section -->
+<section class="welcome-section py-5 mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <!-- Text Content -->
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h1 class="display-3 fw-bold mb-3"><span class="text-primary">BlogWithMuhavi</span></h1>
+                <p class="lead text-muted mb-4">Share your thoughts, ideas, and stories with the world. Join our community of writers and readers today.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create_post' %}" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-plus-circle me-2"></i>Create Post
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                    {% endif %}
+                    <a href="#featured-posts" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="fas fa-compass me-2"></i>Explore Content
+                    </a>
+                </div>
+            </div>
             
+            <!-- Removed Unsplash image section -->
+        </div>
+    </div>
+</section>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2 id="featured-posts">Featured Posts</h2>
+            <hr>
+            
+            <!-- Debug Info -->
+            <div class="alert alert-info d-none">
+                <p>Debug Information:</p>
+                <ul>
+                    <li>Number of posts: {{ posts|length }}</li>
+                    <li>First post title: {{ posts.0.title|default:'No posts' }}</li>
+                    <li>Is paginated: {{ is_paginated|yesno:"Yes,No" }}</li>
+                </ul>
+            </div>
+            
+            <div id="posts-container">
             {% if posts %}
                 {% for post in posts %}
-                <div class="card mb-4">
-                    {% if post.image %}
-                    <img src="{{ post.image.url }}" class="card-img-top blog-image" alt="{{ post.title }}">
+                <div class="card mb-4 post-card shadow-sm">
+                    <!-- Media Preview -->
+                    {% if post.video %}
+                        <div class="position-relative">
+                            <video class="card-img-top" style="height: 300px; object-fit: cover;" controls>
+                                <source src="{{ post.video.url }}" type="video/{{ post.video.url|slice:'-3:' }}">
+                                Your browser does not support the video tag.
+                            </video>
+                            <span class="position-absolute top-0 start-0 m-2 badge bg-dark">
+                                <i class="fas fa-play me-1"></i> Video
+                            </span>
+                        </div>
+                    {% elif post.audio %}
+                        <div class="bg-light p-4 text-center">
+                            <i class="fas fa-music fa-4x text-muted mb-3"></i>
+                            <div class="w-100">
+                                <audio controls class="w-100">
+                                    <source src="{{ post.audio.url }}" type="audio/{{ post.audio.url|slice:'-3:' }}">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                        </div>
+                    {% elif post.image %}
+                        <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 300px; object-fit: cover;">
                     {% endif %}
+                    
                     <div class="card-body">
-                        <h5 class="card-title">
-                            <a href="{% url 'post_detail' post.pk %}" class="text-decoration-none">
+                        <!-- Media Type Badge -->
+                        <div class="mb-2">
+                            {% if post.video %}
+                                <span class="badge bg-primary"><i class="fas fa-video me-1"></i> Video</span>
+                            {% elif post.audio %}
+                                <span class="badge bg-info text-dark"><i class="fas fa-music me-1"></i> Audio</span>
+                            {% elif post.image %}
+                                <span class="badge bg-secondary"><i class="fas fa-image me-1"></i> Image</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark"><i class="fas fa-file-alt me-1"></i> Text</span>
+                            {% endif %}
+                            
+                            <!-- View Count -->
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-eye me-1"></i> {{ post.view_count }} views
+                            </span>
+                        </div>
+                        
+                        <h3 class="card-title h4">
+                            <a href="{% url 'post_detail' post.pk %}" class="text-decoration-none text-dark">
                                 {{ post.title }}
                             </a>
-                        </h5>
+                        </h3>
+                        
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-user me-1"></i> {{ post.author.username }} 
+                            <i class="fas fa-calendar ms-2 me-1"></i> {{ post.created_at|date:"M d, Y" }}
+                        </p>
+                        
                         <p class="card-text">{{ post.content|truncatewords:30 }}</p>
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <small class="text-muted">
-                                    <i class="fas fa-user"></i> {{ post.author.username }} | 
-                                    <i class="fas fa-calendar"></i> {{ post.created_at|date:"M d, Y" }} |
-                                    <i class="fas fa-eye"></i> {{ post.view_count }} views
-                                </small>
-                                <div class="mt-2">
-                                    {% if user.is_authenticated %}
-                                    <button class="btn btn-sm btn-outline-success like-btn me-1" 
-                                            data-post-id="{{ post.pk }}" 
-                                            data-user-vote="{{ post.get_user_vote|default:'' }}"
-                                            data-is-like="true">
-                                        <i class="fas fa-thumbs-up"></i> 
-                                        <span class="like-count">{{ post.get_like_count }}</span>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger dislike-btn" 
-                                            data-post-id="{{ post.pk }}" 
-                                            data-user-vote="{{ post.get_user_vote|default:'' }}"
-                                            data-is-like="false">
-                                        <i class="fas fa-thumbs-down"></i> 
-                                        <span class="dislike-count">{{ post.get_dislike_count }}</span>
-                                    </button>
-                                    {% else %}
-                                    <span class="badge bg-success me-2">
-                                        <i class="fas fa-thumbs-up"></i> {{ post.get_like_count }}
-                                    </span>
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-thumbs-down"></i> {{ post.get_dislike_count }}
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <a href="{% url 'post_detail' post.pk %}" class="btn btn-primary btn-sm">
-                                Read More <i class="fas fa-arrow-right"></i>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'post_detail' post.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-book-reader me-1"></i> Read More
                             </a>
+                            <div class="text-muted small">
+                                <i class="far fa-comment me-1"></i> {{ post.comments.count }} comments
+                            </div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
+            </div>
 
-                <!-- Pagination -->
-                {% if page_obj.has_other_pages %}
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1">First</a>
+                            <a class="page-link" href="?page=1">&laquo; First</a>
                         </li>
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
                         </li>
-                        {% endif %}
-
-                        <li class="page-item active">
-                            <span class="page-link">
-                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-                            </span>
-                        </li>
-
-                        {% if page_obj.has_next %}
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
                         </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+                
             {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-blog fa-3x text-muted mb-3"></i>
-                <h3 class="text-muted">No posts yet</h3>
-                <p class="text-muted">Be the first to create a post!</p>
-                {% if user.is_authenticated %}
-                <a href="{% url 'create_post' %}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Create First Post
-                </a>
-                {% else %}
-                <a href="{% url 'register' %}" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> Register to Start Blogging
-                </a>
-                {% endif %}
+                <div class="alert alert-info">
+                    No posts yet. Be the first to create one!
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create_post' %}" class="alert-link">Create a new post</a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="alert-link">Sign up</a> or 
+                        <a href="{% url 'login' %}" class="alert-link">log in</a> to create a post.
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <img src="{% static 'images/Snapchat-1409999016.jpg' %}" 
+                         class="img-fluid rounded-circle mb-3" 
+                         width="150" 
+                         height="150"
+                         alt="Welcome">
+                    <h4>Welcome to BlogWithMuhavi</h4>
+                    <p class="text-muted">Share your thoughts and ideas with the world.</p>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-primary">Join Now</a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if featured_posts %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Featured Posts</h5>
+                </div>
+                <div class="card-body">
+                    {% for post in featured_posts %}
+                    <div class="mb-3">
+                        <h6><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h6>
+                        <p class="small text-muted">By {{ post.author.username }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
         </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> About</h5>
-                </div>
-                <div class="card-body">
-                    <p>Welcome to Muhavi's Blog - a place to share thoughts, ideas, and stories with the world.</p>
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-check text-success"></i> User authentication</li>
-                        <li><i class="fas fa-check text-success"></i> Create and edit posts</li>
-                        <li><i class="fas fa-check text-success"></i> Image uploads</li>
-                        <li><i class="fas fa-check text-success"></i> Comments system</li>
-                        <li><i class="fas fa-check text-success"></i> Responsive design</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Debug information
+    document.addEventListener('DOMContentLoaded', function() {
+        // Store template variables in JavaScript variables with proper string conversion
+        const postsLength = parseInt('{{ posts|length|default:"0" }}');
+        const isPaginated = '{{ is_paginated|yesno:"true,false" }}' === 'true';
+        
+        // Log basic information about posts and pagination
+        console.log('Number of posts:', postsLength);
+        console.log('Is paginated:', isPaginated);
+        
+        // Log posts container element
+        const postsContainer = document.querySelector('#posts-container');
+        if (postsContainer) {
+            console.log('Posts container found');
+        } else {
+            console.warn('Posts container not found');
+        }
+        
+        // Log any post elements found
+        const postElements = document.querySelectorAll('.post-card');
+        console.log('Number of post elements found:', postElements.length);
+    });
+</script>
 {% endblock %}

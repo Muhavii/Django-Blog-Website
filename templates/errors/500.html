@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Server Error - BlogWithMuhavi{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-template">
+                <h1 class="display-1 text-danger">500</h1>
+                <h2 class="display-4">Server Error</h2>
+                <div class="error-details my-4">
+                    <p class="lead">Oops! Something went wrong on our end. Our team has been notified and we're working to fix it.</p>
+                    <p>Please try again later, or contact us if the problem persists.</p>
+                </div>
+                <div class="error-actions mt-4">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-home"></i> Return Home
+                    </a>
+                    <a href="{% url 'home' %}#contact" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-envelope"></i> Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-template {
+        padding: 80px 15px;
+        text-align: center;
+    }
+    
+    .error-actions {
+        margin-top: 30px;
+    }
+    
+    .error-actions .btn {
+        margin-right: 10px;
+    }
+    
+    .error-details {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}

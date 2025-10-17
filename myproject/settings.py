@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from decouple import config
 import os
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -136,16 +140,39 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# The URL to use when referring to static files (where they will be served from)
+STATIC_URL = '/static/'
+
+# The absolute path to the directory where collectstatic will collect static files for deployment.
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Extra places for collectstatic to find static files.
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+# Simplified static file serving for production with WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Ensure admin static files are collected
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+# Media files (user-uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# File upload settings
+MAX_UPLOAD_SIZE = 52428800  # 50MB in bytes
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB in bytes
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB in bytes
+
+# File upload validators
+FILE_UPLOAD_HANDLERS = [
+    'django.core.files.uploadhandler.MemoryFileUploadHandler',
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
 ]
 
 # Admin static files
@@ -164,35 +191,48 @@ ADMIN_SITE_HEADER = "Muhavi's Blog Administration"
 ADMIN_SITE_TITLE = "Muhavi's Blog Admin"
 ADMIN_INDEX_TITLE = "Welcome to Muhavi's Blog Admin"
 
-# Simplified static file serving for production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # Cloudinary Configuration
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
+CLOUDINARY_STORAGE = {}
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
-# Cloudinary credentials - Load from environment variables
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'your_cloud_name'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', 'your_api_key'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'your_api_secret'),
-    'SECURE': True,  # Use HTTPS
-    'VALIDATE_URL': True
-}
+# Only try to configure Cloudinary if the package is installed
+if 'cloudinary_storage' in INSTALLED_APPS and 'cloudinary' in INSTALLED_APPS:
+    try:
+        import cloudinary
+        import cloudinary.uploader
+        import cloudinary.api
 
-# Initialize Cloudinary
-cloudinary.config(
-    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
-    api_key=CLOUDINARY_STORAGE['API_KEY'],
-    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
-    secure=True
-)
+        # Try to get credentials from environment variables
+        cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
+        api_key = os.environ.get('CLOUDINARY_API_KEY')
+        api_secret = os.environ.get('CLOUDINARY_API_SECRET')
 
-# Use Cloudinary for media files
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-MEDIA_URL = '/media/'
+        if cloud_name and api_key and api_secret:
+            CLOUDINARY_STORAGE = {
+                'CLOUD_NAME': cloud_name,
+                'API_KEY': api_key,
+                'API_SECRET': api_secret,
+                'SECURE': True,  # Use HTTPS
+                'VALIDATE_URL': True
+            }
+            
+            # Initialize Cloudinary
+            cloudinary.config(
+                cloud_name=cloud_name,
+                api_key=api_key,
+                api_secret=api_secret
+            )
+            
+            # Set Cloudinary as default storage
+            DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+            logger.info("Cloudinary storage configured successfully")
+        else:
+            logger.warning("Missing Cloudinary credentials. Using local file storage.")
+            
+    except ImportError:
+        logger.warning("Cloudinary packages not found. Using local file storage.")
+else:
+    logger.info("Cloudinary apps not in INSTALLED_APPS. Using local file storage.")
 MEDIA_ROOT = BASE_DIR / 'media'  # Fallback for local development
 
 # WhiteNoise configuration - exclude media files
@@ -205,6 +245,11 @@ WHITENOISE_SKIP_COMPRESS_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'zip
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Login/Logout URLs
+LOGIN_REDIRECT_URL = 'home'  # Redirect to home page after login
+LOGIN_URL = 'login'  # URL to redirect to for login
+LOGOUT_REDIRECT_URL = 'home'  # URL to redirect to after logout
 
 # Logging configuration
 LOGGING = {

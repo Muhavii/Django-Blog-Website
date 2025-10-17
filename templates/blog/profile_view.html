@@ -48,15 +48,35 @@
                     {% endif %}
 
                     <!-- Profile Picture -->
-                    <div class="mb-3">
+                    <div class="mb-3" style="text-align: center;">
                         {% if profile.profile_picture %}
                             <img src="{{ profile.profile_picture.url }}" 
                                  alt="{{ profile_user.username }}'s Profile Picture" 
-                                 class="rounded-circle profile-pic-large blog-image"
+                                 style="
+                                     width: 100px !important;
+                                     height: 100px !important;
+                                     object-fit: cover !important;
+                                     border: 3px solid #fff !important;
+                                     border-radius: 8px !important;
+                                     box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+                                     display: block !important;
+                                     margin: 0 auto 1rem !important;
+                                 "
                                  onerror="this.onerror=null; this.src='{{ MEDIA_URL }}default-avatar.png';">
                         {% else %}
-                            <div class="default-avatar-large">
-                                <i class="fas fa-user fa-4x text-muted"></i>
+                            <div style="
+                                width: 100px;
+                                height: 100px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                background: #f8f9fa;
+                                border: 3px solid #fff;
+                                border-radius: 8px;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                margin: 0 auto 1rem;
+                            ">
+                                <i class="fas fa-user fa-3x text-muted"></i>
                             </div>
                         {% endif %}
                     </div>

@@ -7,7 +7,17 @@ from django.utils import timezone
 from django.conf import settings
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from cloudinary_storage.storage import MediaCloudinaryStorage
+from django.conf import settings
+from django.core.validators import FileExtensionValidator
+
+# Only import Cloudinary if it's configured
+try:
+    if hasattr(settings, 'CLOUDINARY_STORAGE') and settings.CLOUDINARY_STORAGE:
+        from cloudinary_storage.storage import MediaCloudinaryStorage
+    else:
+        MediaCloudinaryStorage = None
+except ImportError:
+    MediaCloudinaryStorage = None
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +28,36 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
-    image = models.ImageField(upload_to='blog_images/', blank=True, null=True)
+    image = models.ImageField(
+        upload_to='blog_images/',
+        blank=True,
+        null=True,
+        help_text='Upload a featured image for the post'
+    )
+    video = models.FileField(
+        upload_to='post_videos/',
+        blank=True,
+        null=True,
+        help_text='Upload a video file (MP4, WebM, OGG)',
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=['mp4', 'webm', 'ogg'],
+                message='Please upload a valid video file (MP4, WebM, or OGG)'
+            )
+        ]
+    )
+    audio = models.FileField(
+        upload_to='post_audio/',
+        blank=True,
+        null=True,
+        help_text='Upload an audio file (MP3, WAV, OGG)',
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=['mp3', 'wav', 'ogg'],
+                message='Please upload a valid audio file (MP3, WAV, or OGG)'
+            )
+        ]
+    )
     view_count = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -41,6 +80,16 @@ class Post(models.Model):
             except:
                 return None
         return None
+        
+    def get_media_type(self):
+        """Return the type of media in the post"""
+        if self.video:
+            return 'video'
+        elif self.audio:
+            return 'audio'
+        elif self.image:
+            return 'image'
+        return 'text'
 
     def get_absolute_url(self):
         return reverse('post_detail', kwargs={'pk': self.pk})
@@ -147,24 +196,40 @@ class Profile(models.Model):
                         try:
                             logger.info(f"Attempting to delete old profile picture: {old_instance.profile_picture}")
                             storage = old_instance.profile_picture.storage
-                            storage.delete(old_instance.profile_picture.name)
-                            logger.info("Successfully deleted old profile picture")
+                            
+                            # Check if the file exists before trying to delete
+                            if storage.exists(old_instance.profile_picture.name):
+                                storage.delete(old_instance.profile_picture.name)
+                                logger.info("Successfully deleted old profile picture")
+                            else:
+                                logger.warning(f"Profile picture file not found: {old_instance.profile_picture.name}")
+                                
                         except Exception as e:
-                            logger.error(f"Error deleting old profile picture: {str(e)}")
+                            logger.error(f"Error deleting old profile picture: {str(e)}", exc_info=True)
+                            # Continue with save even if deletion fails
             
             # Save the instance
             super().save(*args, **kwargs)
             
-            # If this is a new profile picture, log its details
+            # If this is a new profile picture, verify it was saved correctly
             if self.profile_picture:
-                logger.info(f"Profile picture saved successfully for {self.user.username}")
-                if hasattr(self.profile_picture, 'url'):
-                    logger.info(f"New picture URL: {self.profile_picture.url}")
-                else:
-                    logger.warning("Profile picture has no URL attribute")
+                try:
+                    if hasattr(self.profile_picture, 'url'):
+                        # Verify the file exists in storage
+                        if hasattr(self.profile_picture, 'storage') and hasattr(self.profile_picture, 'name'):
+                            if not self.profile_picture.storage.exists(self.profile_picture.name):
+                                logger.error(f"Profile picture file was not saved correctly: {self.profile_picture.name}")
+                            else:
+                                logger.info(f"Profile picture saved successfully for {self.user.username} at {self.profile_picture.url}")
+                    else:
+                        logger.warning("Profile picture has no URL attribute")
+                        
+                except Exception as e:
+                    logger.error(f"Error verifying profile picture upload: {str(e)}", exc_info=True)
                     
         except Exception as e:
             logger.error(f"Error in Profile.save(): {str(e)}", exc_info=True)
+            # Re-raise the exception to ensure the user knows something went wrong
             raise
 
     def get_profile_picture_url(self):

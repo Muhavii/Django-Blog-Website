@@ -23,14 +23,45 @@ from .forms import PostForm, CommentForm, UserRegistrationForm, UserUpdateForm, 
 
 
 def home(request):
-    posts = Post.objects.all()
+    # Debug: Log request
+    logger.info("Home view accessed")
+    
+    # Get featured posts (most viewed and most liked)
+    featured_posts = Post.objects.annotate(
+        like_count=Count('likes', filter=Q(likes__is_like=True))
+    ).order_by('-view_count', '-like_count')[:2]
+    
+    # Debug: Log featured posts count
+    logger.info(f"Found {len(featured_posts)} featured posts")
+    
+    # Get all posts with related data to avoid N+1 queries
+    posts = Post.objects.select_related('author', 'author__profile').prefetch_related('comments').annotate(
+        like_count=Count('likes', filter=Q(likes__is_like=True)),
+        comment_count=Count('comments')
+    ).order_by('-created_at')
+    
+    # Debug: Log total posts count
+    logger.info(f"Found {posts.count()} total posts")
+    
+    # Pagination
     paginator = Paginator(posts, 5)  # Show 5 posts per page
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    # Debug: Log pagination info
+    logger.info(f"Page {page_obj.number} of {paginator.num_pages}, showing {len(page_obj)} posts")
     
     context = {
         'page_obj': page_obj,
-        'posts': page_obj,
+        'posts': page_obj,  # This is the paginated queryset
+        'featured_posts': featured_posts,
+        'is_paginated': page_obj.has_other_pages(),
     }
     return render(request, 'blog/home.html', context)
 
@@ -578,3 +609,21 @@ def user_search(request):
         'users': users,
         'query': request.GET.get('query', '')
     })
+
+
+def handler404(request, exception, template_name='errors/404.html'):
+    """
+    Custom 404 error handler
+    """
+    response = render(request, template_name, status=404)
+    response.status_code = 404
+    return response
+
+
+def handler500(request, template_name='errors/500.html'):
+    """
+    Custom 500 error handler
+    """
+    response = render(request, template_name, status=500)
+    response.status_code = 500
+    return response

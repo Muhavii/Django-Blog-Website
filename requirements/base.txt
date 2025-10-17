@@ -1,0 +1,20 @@
+# Core Django and database
+Django==4.2.7
+Pillow==11.3.0
+python-decouple==3.8
+dj-database-url==2.1.0
+psycopg2-binary==2.9.10
+
+# Form handling
+django-crispy-forms==2.1
+crispy-bootstrap5==0.7
+
+# File storage
+django-cloudinary-storage==0.3.0
+cloudinary==1.36.0
+
+# WSGI server
+gunicorn==21.2.0
+
+# Static files
+whitenoise==6.6.0

@@ -218,3 +218,47 @@ node_modules/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Project-specific settings
+settings/dev.py
+settings/prod.py
+*-settings.py
+
+# Environment files
+.env.*
+!.env.example
+.flaskenv
+.python-version
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.history/
+
+# macOS specific
+.AppleDouble
+.LSOverride
+._*
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Python type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Local development
+*.local
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+.idea_modules/
+*.iml
+*.ipr
