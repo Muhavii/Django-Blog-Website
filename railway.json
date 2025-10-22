@@ -5,6 +5,6 @@
     "buildCommand": "pip install --no-cache-dir -r requirements.txt"
   },
   "deploy": {
-    "startCommand": "bash -c 'python manage.py migrate && python manage.py create_superuser --noinput --username=admin --email=griffinsmuhavi@gmail.com || true && python manage.py collectstatic --noinput && gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --worker-class gthread'"
+    "startCommand": "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --worker-class gthread"
   }
 }
