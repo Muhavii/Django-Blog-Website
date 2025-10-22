@@ -1,0 +1,2 @@
+[phases.setup]
+nixPkgs = ['python39', 'postgresql_16.dev', 'gcc', 'zlib.dev', 'libjpeg', 'libwebp', 'gcc-unwrapped.lib']
