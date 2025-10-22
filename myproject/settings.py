@@ -192,47 +192,63 @@ ADMIN_SITE_TITLE = "Muhavi's Blog Admin"
 ADMIN_INDEX_TITLE = "Welcome to Muhavi's Blog Admin"
 
 # Cloudinary Configuration
-CLOUDINARY_STORAGE = {}
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+    'SECURE': True,
+    'VALIDATE_URL': True,
+    'RESOURCE_TYPE': 'auto',  # Auto-detect resource type
+    'RAW_FILE': True,  # Enable raw file uploads
+    'VALIDATE_FILE_TYPES': False,  # Disable strict file type validation
+    'PREFIX': 'media/'
+}
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.RawMediaCloudinaryStorage'
 
-# Only try to configure Cloudinary if the package is installed
+# Configure Cloudinary if both apps are in INSTALLED_APPS
 if 'cloudinary_storage' in INSTALLED_APPS and 'cloudinary' in INSTALLED_APPS:
     try:
         import cloudinary
         import cloudinary.uploader
         import cloudinary.api
-
-        # Try to get credentials from environment variables
+        
+        # Get credentials from environment
         cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
         api_key = os.environ.get('CLOUDINARY_API_KEY')
         api_secret = os.environ.get('CLOUDINARY_API_SECRET')
-
+        
         if cloud_name and api_key and api_secret:
-            CLOUDINARY_STORAGE = {
-                'CLOUD_NAME': cloud_name,
-                'API_KEY': api_key,
-                'API_SECRET': api_secret,
-                'SECURE': True,  # Use HTTPS
-                'VALIDATE_URL': True
-            }
-            
-            # Initialize Cloudinary
+            # Initialize Cloudinary SDK
             cloudinary.config(
                 cloud_name=cloud_name,
                 api_key=api_key,
                 api_secret=api_secret
             )
             
-            # Set Cloudinary as default storage
-            DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-            logger.info("Cloudinary storage configured successfully")
+            # Configure Cloudinary Storage
+            CLOUDINARY_STORAGE.update({
+                'CLOUD_NAME': cloud_name,
+                'API_KEY': api_key,
+                'API_SECRET': api_secret,
+                'RESOURCE_TYPE': 'auto',
+                'RAW_FILE': True,
+                'VALIDATE_FILE_TYPES': False,
+                'PREFIX': 'media/'
+            })
+            
+            # Use RawMediaCloudinaryStorage for all file types
+            DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.RawMediaCloudinaryStorage'
+            logger.info("Cloudinary storage configured successfully with raw file support")
         else:
             logger.warning("Missing Cloudinary credentials. Using local file storage.")
+            DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
             
     except ImportError:
         logger.warning("Cloudinary packages not found. Using local file storage.")
+        DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 else:
     logger.info("Cloudinary apps not in INSTALLED_APPS. Using local file storage.")
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 MEDIA_ROOT = BASE_DIR / 'media'  # Fallback for local development
 
 # WhiteNoise configuration - exclude media files

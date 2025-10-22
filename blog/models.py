@@ -59,6 +59,10 @@ class Post(models.Model):
         ]
     )
     view_count = models.PositiveIntegerField(default=0)
+    featured = models.BooleanField(
+        default=False,
+        help_text='Designates whether this post should be featured on the homepage.'
+    )
 
     class Meta:
         ordering = ['-created_at']

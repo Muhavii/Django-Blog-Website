@@ -21,19 +21,27 @@ class UserSearchForm(forms.Form):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'image', 'video', 'audio']
+        fields = ['title', 'content', 'image', 'video', 'audio', 'featured']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
             'video': forms.ClearableFileInput(attrs={'class': 'form-control-file', 'accept': 'video/*'}),
             'audio': forms.ClearableFileInput(attrs={'class': 'form-control-file', 'accept': 'audio/*'}),
+            'featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         help_texts = {
             'image': 'Upload a featured image for your post (JPG, PNG, GIF)',
             'video': 'Upload a video file (MP4, WebM, OGG, max 50MB)',
             'audio': 'Upload an audio file (MP3, WAV, OGG, max 50MB)',
+            'featured': 'Check to feature this post on the homepage',
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set default value for featured field if it's a new post
+        if not self.instance.pk:
+            self.initial['featured'] = False
 
 class CommentForm(forms.ModelForm):
     class Meta:
